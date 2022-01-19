@@ -9044,6 +9044,11 @@ VK_DESTROY
 		kick();
 	}
 
+
+	void helloRaytracing()
+	{
+
+	}
 } /* namespace vk */ } // namespace bgfx
 
 #else
