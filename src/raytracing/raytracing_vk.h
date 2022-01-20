@@ -5,6 +5,7 @@
 #include "raytracing_builder.h"
 #include "functions_vk.h"
 
+#define BGFX_VKAPI(func) (*(PFN_##func*)FunctionMapVk::Get()->getFunction(EVkFunctionName::func))
 namespace bgfx{
 
 	class RayTracingBase {
@@ -19,6 +20,8 @@ namespace bgfx{
 		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex);
 
 		void setSwapChain();
+
+		void initDevice();
 
 		void initRayTracing();
 

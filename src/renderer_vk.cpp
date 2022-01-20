@@ -4349,12 +4349,13 @@ VK_IMPORT_DEVICE
 
 		void setupRaytracing() override
 		{
+#define INSERT_FUNC(func) funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::func, &func));
 			std::map<EVkFunctionName, void*> funcMap;
-			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkEnumeratePhysicalDevices, &vkEnumeratePhysicalDevices));
-			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkGetDeviceQueue, &vkGetDeviceQueue));
-			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkCreatePipelineCache, &vkCreatePipelineCache));
-			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkCreateCommandPool, &vkCreateCommandPool));
-
+			INSERT_FUNC(vkEnumeratePhysicalDevices)
+			INSERT_FUNC(vkGetDeviceQueue)
+			INSERT_FUNC(vkCreatePipelineCache)
+			INSERT_FUNC(vkCreateCommandPool)
+#undef
 
 			m_raytracingVK.setListOfFunctions(funcMap);
 			m_raytracingVK.setup(m_instance,m_device, m_physicalDevice, m_globalQueueFamily);
