@@ -9,6 +9,7 @@
 #	include <bx/pixelformat.h>
 #	include "renderer_vk.h"
 #	include "shader_spirv.h"
+#	include "raytracing/raytracing_vk.h"
 
 #if BX_PLATFORM_OSX
 #	import <Cocoa/Cocoa.h>
@@ -4346,6 +4347,19 @@ VK_IMPORT_DEVICE
 			return createHostBuffer(_size, flags, _buffer, _memory, NULL);
 		}
 
+		void setupRaytracing() override
+		{
+			std::map<EVkFunctionName, void*> funcMap;
+			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkEnumeratePhysicalDevices, &vkEnumeratePhysicalDevices));
+			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkGetDeviceQueue, &vkGetDeviceQueue));
+			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkCreatePipelineCache, &vkCreatePipelineCache));
+			funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::vkCreateCommandPool, &vkCreateCommandPool));
+
+
+			m_raytracingVK.setListOfFunctions(funcMap);
+			m_raytracingVK.setup(m_instance,m_device, m_physicalDevice, m_globalQueueFamily);
+		}
+
 		VkAllocationCallbacks*   m_allocatorCb;
 		VkDebugReportCallbackEXT m_debugReportCallback;
 		VkInstance       m_instance;
@@ -4419,6 +4433,8 @@ VK_IMPORT_DEVICE
 		uint8_t m_vsScratch[64<<10];
 
 		FrameBufferHandle m_fbh;
+
+		RayTracingVK m_raytracingVK;
 	};
 
 	static RendererContextVK* s_renderVK;
@@ -9045,10 +9061,6 @@ VK_DESTROY
 	}
 
 
-	void helloRaytracing()
-	{
-
-	}
 } /* namespace vk */ } // namespace bgfx
 
 #else

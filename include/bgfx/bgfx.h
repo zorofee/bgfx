@@ -4163,6 +4163,8 @@ namespace bgfx
 		, const char* _filePath
 		);
 
+	void setupRaytracing();
+
 } // namespace bgfx
 
 #endif // BGFX_H_HEADER_GUARD

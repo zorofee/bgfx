@@ -5519,6 +5519,11 @@ namespace bgfx
 		s_ctx->requestScreenShot(_handle, _filePath);
 	}
 
+	void setupRaytracing()
+	{
+		s_ctx->m_renderCtx->setupRaytracing();
+	}
+
 #undef BGFX_CHECK_ENCODER0
 
 } // namespace bgfx
