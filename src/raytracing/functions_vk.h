@@ -8,7 +8,11 @@ namespace bgfx {
 		vkGetDeviceQueue,
 		vkCreatePipelineCache,
 		vkCreateCommandPool,
-		vkGetPhysicalDeviceFeatures
+		vkGetPhysicalDeviceFeatures,
+		vkGetPhysicalDeviceProperties2,
+		vkCreatePipelineLayout,
+		vkCreateRayTracingPipelinesKHR,
+		vkDestroyShaderModule,
 	};
 
 	class FunctionMapVk

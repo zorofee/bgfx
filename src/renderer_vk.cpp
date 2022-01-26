@@ -314,6 +314,10 @@ VK_IMPORT_DEVICE
 			EXT_shader_viewport_index_layer,
 			EXT_custom_border_color,
 
+			EXT_acceleration_structure,
+			EXT_ray_tracing_pipeline,
+			EXT_deferred_host_operations,
+
 			Count
 		};
 
@@ -337,6 +341,10 @@ VK_IMPORT_DEVICE
 		{ "VK_EXT_line_rasterization",              1, false, false, true                                                         , Layer::Count },
 		{ "VK_EXT_shader_viewport_index_layer",     1, false, false, true                                                         , Layer::Count },
 		{ "VK_EXT_custom_border_color",             1, false, false, true                                                         , Layer::Count },
+
+		{ "VK_KHR_acceleration_structure",             1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_ray_tracing_pipeline",             1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_deferred_host_operations",             1, false, false, true                                                         , Layer::Count },
 	};
 	BX_STATIC_ASSERT(Extension::Count == BX_COUNTOF(s_extension) );
 
@@ -1171,6 +1179,12 @@ VK_IMPORT
 					s_layer[Layer::VK_LAYER_LUNARG_standard_validation].m_device.m_supported   = false;
 					s_layer[Layer::VK_LAYER_LUNARG_standard_validation].m_instance.m_supported = false;
 				}
+				s_extension[Extension::EXT_acceleration_structure].m_initialize = true;
+				s_extension[Extension::EXT_acceleration_structure].m_supported = true;
+				s_extension[Extension::EXT_ray_tracing_pipeline].m_initialize = true;
+				s_extension[Extension::EXT_ray_tracing_pipeline].m_supported = true;
+				s_extension[Extension::EXT_deferred_host_operations].m_initialize = true;
+				s_extension[Extension::EXT_deferred_host_operations].m_supported = true;
 
 				uint32_t numEnabledLayers = 0;
 
@@ -4355,10 +4369,24 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkGetDeviceQueue)
 			INSERT_FUNC(vkCreatePipelineCache)
 			INSERT_FUNC(vkCreateCommandPool)
-#undef
+			INSERT_FUNC(vkGetPhysicalDeviceProperties2)
+			INSERT_FUNC(vkCreatePipelineLayout)
+			INSERT_FUNC(vkCreateRayTracingPipelinesKHR)
+			INSERT_FUNC(vkDestroyShaderModule)
+
+
+			VkRayTracingCreateInfo info;
+			info.instance = m_instance;
+			info.device = m_device;
+			info.physicalDevice = m_physicalDevice;
+			info.queueIndices = { m_globalQueueFamily };
 
 			m_raytracingVK.setListOfFunctions(funcMap);
-			m_raytracingVK.setup(m_instance,m_device, m_physicalDevice, m_globalQueueFamily);
+			m_raytracingVK.setup(info);
+			m_raytracingVK.initRayTracing();
+
+			//ProgramVK& program = m_program[0];
+			//m_raytracingVK.createRtPipeline(program);
 		}
 
 		VkAllocationCallbacks*   m_allocatorCb;
@@ -5085,6 +5113,14 @@ VK_DESTROY
 	{
 		BX_ASSERT(NULL != _vsh->m_code, "Vertex shader doesn't exist.");
 		m_vsh = _vsh;
+		//--------------
+		//now just for test
+		m_rayGen = _vsh;
+		m_miss = _vsh;
+		m_miss2 = _vsh;
+		m_closestHit = _vsh;
+		//--------------
+
 		bx::memCopy(
 			  &m_predefined[0]
 			, _vsh->m_predefined

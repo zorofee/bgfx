@@ -75,6 +75,7 @@
 			VK_IMPORT_INSTANCE_FUNC(false, vkEnumerateDeviceExtensionProperties);      \
 			VK_IMPORT_INSTANCE_FUNC(false, vkEnumerateDeviceLayerProperties);          \
 			VK_IMPORT_INSTANCE_FUNC(false, vkGetPhysicalDeviceProperties);             \
+			VK_IMPORT_INSTANCE_FUNC(false, vkGetPhysicalDeviceProperties2);             \
 			VK_IMPORT_INSTANCE_FUNC(false, vkGetPhysicalDeviceFormatProperties);       \
 			VK_IMPORT_INSTANCE_FUNC(false, vkGetPhysicalDeviceFeatures);               \
 			VK_IMPORT_INSTANCE_FUNC(false, vkGetPhysicalDeviceImageFormatProperties);  \
@@ -189,6 +190,8 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkInvalidateMappedMemoryRanges);  \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindBufferMemory);              \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory);               \
+			/* VK_Raytracing_KHR */                                       \
+			VK_IMPORT_DEVICE_FUNC(true,  vkCreateRayTracingPipelinesKHR);   \
 			/* VK_KHR_swapchain */                                         \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateSwapchainKHR);            \
 			VK_IMPORT_DEVICE_FUNC(true,  vkDestroySwapchainKHR);           \
@@ -489,6 +492,10 @@ VK_DESTROY_FUNC(DescriptorSet);
 		ProgramVK()
 			: m_vsh(NULL)
 			, m_fsh(NULL)
+			, m_rayGen(NULL)
+			, m_miss(NULL)
+			, m_miss2(NULL)
+			, m_closestHit(NULL)
 			, m_descriptorSetLayout(VK_NULL_HANDLE)
 			, m_pipelineLayout(VK_NULL_HANDLE)
 		{
@@ -499,6 +506,12 @@ VK_DESTROY_FUNC(DescriptorSet);
 
 		const ShaderVK* m_vsh;
 		const ShaderVK* m_fsh;
+
+		const ShaderVK* m_rayGen;
+		const ShaderVK* m_miss;
+		const ShaderVK* m_miss2;
+		const ShaderVK* m_closestHit;
+
 
 		BindInfo m_bindInfo[BGFX_CONFIG_MAX_TEXTURE_SAMPLERS];
 
