@@ -1315,7 +1315,19 @@ VK_IMPORT
 			imported &= _optional || NULL != _func
 VK_IMPORT_INSTANCE
 #undef VK_IMPORT_INSTANCE_FUNC
+			{
+				uint32_t deviceCount = 0;
+				vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
 
+				std::vector<VkPhysicalDevice> devices(deviceCount);
+				vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices.data());
+
+				uint32_t count;
+				std::vector<VkExtensionProperties> extensionProperties;
+				(vkEnumerateDeviceExtensionProperties(devices[0], nullptr, &count, nullptr));
+				extensionProperties.resize(count);
+				(vkEnumerateDeviceExtensionProperties(devices[0], nullptr, &count, extensionProperties.data()));
+			}
 			if (!imported)
 			{
 				BX_TRACE("Init error: Failed to load instance functions.");
@@ -4365,14 +4377,77 @@ VK_IMPORT_DEVICE
 		{
 #define INSERT_FUNC(func) funcMap.emplace(std::pair<EVkFunctionName, void*>(EVkFunctionName::func, &func));
 			std::map<EVkFunctionName, void*> funcMap;
-			INSERT_FUNC(vkEnumeratePhysicalDevices)
-			INSERT_FUNC(vkGetDeviceQueue)
-			INSERT_FUNC(vkCreatePipelineCache)
+			INSERT_FUNC(vkAllocateCommandBuffers)
+			INSERT_FUNC(vkAllocateDescriptorSets)
+			INSERT_FUNC(vkAllocateMemory)
+			INSERT_FUNC(vkBeginCommandBuffer)
+			INSERT_FUNC(vkBindImageMemory2)
+			INSERT_FUNC(vkBindBufferMemory)
+			INSERT_FUNC(vkBindBufferMemory2)
+			INSERT_FUNC(vkBindImageMemory)
+			INSERT_FUNC(vkCmdBlitImage)
+			INSERT_FUNC(vkCmdBuildAccelerationStructuresKHR)
+			INSERT_FUNC(vkCmdCopyAccelerationStructureKHR)
+			INSERT_FUNC(vkCmdCopyBuffer)
+			INSERT_FUNC(vkCmdCopyBufferToImage)
+			INSERT_FUNC(vkCmdCopyImageToBuffer)
+			INSERT_FUNC(vkCmdPipelineBarrier)
+			INSERT_FUNC(vkCmdWriteAccelerationStructuresPropertiesKHR)
+			INSERT_FUNC(vkCreateAccelerationStructureKHR)
+			INSERT_FUNC(vkCreateBuffer)
 			INSERT_FUNC(vkCreateCommandPool)
-			INSERT_FUNC(vkGetPhysicalDeviceProperties2)
+			INSERT_FUNC(vkCreateDescriptorPool)
+			INSERT_FUNC(vkCreateDescriptorSetLayout)
+			INSERT_FUNC(vkCreateFence)
+			INSERT_FUNC(vkCreateImage)
+			INSERT_FUNC(vkCreateImageView)
+			INSERT_FUNC(vkCreatePipelineCache)
 			INSERT_FUNC(vkCreatePipelineLayout)
+			INSERT_FUNC(vkCreateQueryPool)
 			INSERT_FUNC(vkCreateRayTracingPipelinesKHR)
+			INSERT_FUNC(vkCreateSampler)
+			INSERT_FUNC(vkDestroyAccelerationStructureKHR)
+			INSERT_FUNC(vkDestroyBuffer)
+			INSERT_FUNC(vkDestroyCommandPool)
+			INSERT_FUNC(vkDestroyDescriptorPool)
+			INSERT_FUNC(vkDestroyDescriptorSetLayout)
+			INSERT_FUNC(vkDestroyFence)
+			INSERT_FUNC(vkDestroyImage)
+			INSERT_FUNC(vkDestroyImageView)
+			INSERT_FUNC(vkDestroyPipelineLayout)
+			INSERT_FUNC(vkDestroyQueryPool)
 			INSERT_FUNC(vkDestroyShaderModule)
+			INSERT_FUNC(vkDestroySampler)
+			INSERT_FUNC(vkEndCommandBuffer)
+			INSERT_FUNC(vkEnumeratePhysicalDevices)
+			INSERT_FUNC(vkFreeCommandBuffers)
+			INSERT_FUNC(vkFreeMemory)
+			INSERT_FUNC(vkGetAccelerationStructureBuildSizesKHR)
+			INSERT_FUNC(vkGetAccelerationStructureDeviceAddressKHR)
+			INSERT_FUNC(vkGetBufferDeviceAddress)
+			INSERT_FUNC(vkGetBufferMemoryRequirements2)
+			INSERT_FUNC(vkGetDeviceQueue)
+			INSERT_FUNC(vkGetImageMemoryRequirements2)
+			INSERT_FUNC(vkGetPhysicalDeviceMemoryProperties)
+			INSERT_FUNC(vkGetPhysicalDeviceProperties2)
+			INSERT_FUNC(vkGetQueryPoolResults)
+			INSERT_FUNC(vkGetFenceStatus)
+			INSERT_FUNC(vkMapMemory)
+			INSERT_FUNC(vkQueueSubmit)
+			INSERT_FUNC(vkQueueWaitIdle)
+			INSERT_FUNC(vkResetFences)
+			INSERT_FUNC(vkResetCommandPool)
+			INSERT_FUNC(vkResetQueryPool)
+			INSERT_FUNC(vkSetDebugUtilsObjectNameEXT)
+			INSERT_FUNC(vkUnmapMemory)
+			INSERT_FUNC(vkUpdateDescriptorSets)
+			INSERT_FUNC(vkWaitForFences)
+			/* NV_raytracing functions */ 
+			INSERT_FUNC(vkCreateAccelerationStructureNV)
+			INSERT_FUNC(vkBindAccelerationStructureMemoryNV)
+			INSERT_FUNC(vkDestroyAccelerationStructureNV)
+			INSERT_FUNC(vkGetAccelerationStructureMemoryRequirementsNV)
+#undef INSERT_FUNC
 
 
 			VkRayTracingCreateInfo info;
@@ -4382,6 +4457,7 @@ VK_IMPORT_DEVICE
 			info.queueIndices = { m_globalQueueFamily };
 
 			m_raytracingVK.setListOfFunctions(funcMap);
+			//m_raytracingVK.setup(m_instance, m_device, m_physicalDevice, m_globalQueueFamily, m_globalQueueFamily + 2);
 			m_raytracingVK.setup(info);
 			m_raytracingVK.initRayTracing();
 
@@ -4463,6 +4539,7 @@ VK_IMPORT_DEVICE
 
 		FrameBufferHandle m_fbh;
 
+		std::vector<bgfx::Queue> queues;
 		RayTracingVK m_raytracingVK;
 	};
 

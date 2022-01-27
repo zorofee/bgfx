@@ -3,20 +3,20 @@
 #include <vulkan-local/vulkan.h>
 
 #if VK_KHR_acceleration_structure
-#include "resource_allocator.h"
-#include "commands_vk.h"
-#include "nvmath.h"
+#include "nvpro_core/nvvk/resource_allocator.h"
+#include "nvpro_core/nvvk/commands_vk.h"
+#include "nvpro_core/nvmath/nvmath.h"
 
 namespace bgfx {
 
-	// Convert a Mat4x4 to the matrix required by acceleration structures
-	inline VkTransformMatrixKHR toTransformMatrixKHR(nvmath::mat4f matrix)
-	{
-		nvmath::mat4f        temp = nvmath::transpose(matrix);
-		VkTransformMatrixKHR out_matrix;
-		memcpy(&out_matrix, &temp, sizeof(VkTransformMatrixKHR));
-		return out_matrix;
-	}
+	//// Convert a Mat4x4 to the matrix required by acceleration structures
+	//inline VkTransformMatrixKHR toTransformMatrixKHR(nvmath::mat4f matrix)
+	//{
+	//	nvmath::mat4f        temp = nvmath::transpose(matrix);
+	//	VkTransformMatrixKHR out_matrix;
+	//	memcpy(&out_matrix, &temp, sizeof(VkTransformMatrixKHR));
+	//	return out_matrix;
+	//}
 
 	class RayTracingBuilder {
 	public:

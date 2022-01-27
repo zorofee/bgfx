@@ -298,10 +298,14 @@ public:
 	void createGraphicsPipeline() {}
 
 	//VKRay
-	void initRayTracing() {
+	void initRayTracing()
+	{
 		bgfx::setupRaytracing();
 	}
-	void createBottomLevelAS() {}
+	void createBottomLevelAS()
+	{
+
+	}
 	void createTopLevelAS() {}
 	void createRtDescriptorSet() {}
 	void createRtPipeline() {}
@@ -331,6 +335,8 @@ public:
 
 		setup(args);
 
+		if (_width + _height < 0)
+			return;
 
 		// Create vertex stream declaration.
 		PosNormalTangentTexcoordVertex::init();

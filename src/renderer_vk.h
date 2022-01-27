@@ -30,7 +30,7 @@
 #endif // BX_PLATFORM_*
 
 #define VK_NO_STDINT_H
-#define VK_NO_PROTOTYPES
+//#define VK_NO_PROTOTYPES
 #include <vulkan-local/vulkan.h>
 #include "renderer.h"
 #include "debug_renderdoc.h"
@@ -192,6 +192,27 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory);               \
 			/* VK_Raytracing_KHR */                                       \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateRayTracingPipelinesKHR);   \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetFenceStatus);                \
+			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory2);              \
+			/* VK_KHR_raytracing */										   \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdBuildAccelerationStructuresKHR); \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdCopyAccelerationStructureKHR); \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdWriteAccelerationStructuresPropertiesKHR); \
+			VK_IMPORT_DEVICE_FUNC(false, vkCreateAccelerationStructureKHR);\
+			VK_IMPORT_DEVICE_FUNC(false, vkBindBufferMemory2);			   \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetImageMemoryRequirements2);   \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferMemoryRequirements2);  \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetAccelerationStructureBuildSizesKHR);\
+			VK_IMPORT_DEVICE_FUNC(false, vkGetAccelerationStructureDeviceAddressKHR);\
+			VK_IMPORT_DEVICE_FUNC(false, vkDestroyAccelerationStructureKHR); \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferDeviceAddress);	       \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetQueryPoolResults);		   \
+			VK_IMPORT_DEVICE_FUNC(false, vkResetQueryPool);				   \
+			/* NV_raytracing functions */                                  \
+			VK_IMPORT_DEVICE_FUNC(true, vkCreateAccelerationStructureNV);  \
+			VK_IMPORT_DEVICE_FUNC(true, vkBindAccelerationStructureMemoryNV); \
+			VK_IMPORT_DEVICE_FUNC(true, vkDestroyAccelerationStructureNV); \
+			VK_IMPORT_DEVICE_FUNC(true, vkGetAccelerationStructureMemoryRequirementsNV); \
 			/* VK_KHR_swapchain */                                         \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateSwapchainKHR);            \
 			VK_IMPORT_DEVICE_FUNC(true,  vkDestroySwapchainKHR);           \

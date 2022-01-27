@@ -1,13 +1,23 @@
 #pragma once
 
 #include <map>
+#include "vulkan-local/vulkan_core.h"
 #include <vulkan-local/vulkan.h>
-#include "nvmath.h"
+#include "accelstruct.h"
+//#include "raytracing_scene.h"
+#include "nvpro_core/nvmath/nvmath.h"
 #include "raytracing_builder.h"
 #include "functions_vk.h"
+#include "queue.h"
 #include "../renderer_vk.h"
 
-#define BGFX_VKAPI(func) (*(PFN_##func*)FunctionMapVk::Get()->getFunction(EVkFunctionName::func))
+#define ALLOC_DMA  // <--- This is in the CMakeLists.txt
+#include "nvpro_core/nvvk/resource_allocator.h"
+#if defined(ALLOC_DMA)
+#include "nvpro_core/nvvk/memallocator_dma_vk.h"
+typedef bgfx::ResourceAllocatorDma Allocator;
+#endif
+
 namespace bgfx{
 
 	enum ERtShaderStages
@@ -51,8 +61,22 @@ namespace bgfx{
 
 	class RayTracingVK : public RayTracingBase{
 	public:
-		void setListOfFunctions(std::map<EVkFunctionName,void*>& funcMap);
 
+		enum Queues
+		{
+			eGCT0,
+			eGCT1,
+			eCompute,
+			eTransfer
+		};
+
+		void setListOfFunctions(std::map<EVkFunctionName,void*>& funcMap);
+		// const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex
+		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, const std::vector<bgfx::Queue>& queues);
+
+		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex, uint32_t computQueueIndex);
+
+		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex);
 		void setup(const VkRayTracingCreateInfo& info);
 
 		void setSwapChain();
@@ -68,6 +92,8 @@ namespace bgfx{
 		void createRtPipeline(const bgfx::vk::ProgramVK& _program);
 
 		void createRtShaderBindingTable();
+
+		void createAccelerationStructure(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index);
 
 	protected:
 		VkInstance		 m_instance{};
@@ -90,8 +116,11 @@ namespace bgfx{
 
 	public:
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_rtProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
-		RayTracingBuilder m_rtBuilder;
-
+		//RayTracingScene		m_scene;
+		RayTracingBuilder	m_rtBuilder;
+		AccelStructure		m_accelStruct;
+		Allocator			m_alloc;  // Allocator for buffer, images, acceleration structures
+		//bgfx::DebugUtil		m_debug;  // Utility to name objects
 
 	};
 

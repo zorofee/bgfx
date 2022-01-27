@@ -57,20 +57,71 @@ namespace bgfx {
 
 		VkPipelineCacheCreateInfo pipelineCacheInfo{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
 		BGFX_VKAPI(vkCreatePipelineCache)(m_device, &pipelineCacheInfo, nullptr, &m_pipelineCache);
-	}
+		////--------------------------------------------------------------------------------------------------
+		// Memory allocator for buffers and images
+		m_alloc.init(info.instance, info.device, info.physicalDevice);
+		// m_debug.setup(m_device);
+		// Compute queues can be use for acceleration structures
+		// 暂时用info.queueIndices[0] + 2
+		m_accelStruct.setup(m_device, info.physicalDevice, info.queueIndices[0] + 2, &m_alloc);
 
-	void RayTracingVK::initRayTracing(){
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::setup(const VkInstance& instance,
+		const VkDevice& device,
+		const VkPhysicalDevice& physicalDevice,
+		uint32_t graphicsQueueIndex,
+		uint32_t computQueueIndex)
+	{
+		std::cout << "hello raytracing!";
+
+		//--------------------------------------------------------------------------------------------------
+		// AppBaseVk::setup
+		m_instance = instance;
+		m_device = device;
+		m_physicalDevice = physicalDevice;
+		m_graphicsQueueIndex = graphicsQueueIndex;
+
+		uint32_t deviceCount = 0;
+		BGFX_VKAPI(vkEnumeratePhysicalDevices)(m_instance, &deviceCount, nullptr);
+		if (deviceCount == 0)
+		{
+			throw std::runtime_error("failed to find GPUs");
+		}
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		BGFX_VKAPI(vkEnumeratePhysicalDevices)(m_instance, &deviceCount, devices.data());
+
+		VkResult result = VK_SUCCESS;
+		BGFX_VKAPI(vkGetDeviceQueue)(m_device, m_graphicsQueueIndex, 0, &m_queue);
+
+		VkCommandPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		BGFX_VKAPI(vkCreateCommandPool)(m_device, &poolCreateInfo, nullptr, &m_cmdPool);
+
+		VkPipelineCacheCreateInfo pipelineCacheInfo{ VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO };
+		BGFX_VKAPI(vkCreatePipelineCache)(m_device, &pipelineCacheInfo, nullptr, &m_pipelineCache);
+		////--------------------------------------------------------------------------------------------------
+		// Memory allocator for buffers and images
+		m_alloc.init(instance, device, physicalDevice);
+		//m_debug.setup(m_device);
+		// Compute queues can be use for acceleration structures
+		m_accelStruct.setup(m_device, physicalDevice, computQueueIndex, &m_alloc);
+
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::initRayTracing() {
 		VkPhysicalDeviceProperties2 prop2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
 		prop2.pNext = &m_rtProperties;
-		BGFX_VKAPI(vkGetPhysicalDeviceProperties2)(m_physicalDevice,&prop2);
+		BGFX_VKAPI(vkGetPhysicalDeviceProperties2)(m_physicalDevice, &prop2);
 
 		//m_rtBuilder.setup(m_device,nullptr,m_graphicsQueueIndex);
 	}
-
-	void RayTracingVK::createBottomLevelAS(){
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createBottomLevelAS()
+	{
 
 	}
-
+	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createRtPipeline(const  bgfx::vk::ProgramVK& _program)
 	{
 
@@ -174,5 +225,10 @@ namespace bgfx {
 			BGFX_VKAPI(vkDestroyShaderModule)(m_device, s.module, nullptr);
 
 		/**/
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createAccelerationStructure(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index)
+	{
+		//m_accelStruct.create(m_scene.getScene(), vertex, index);
 	}
 }
