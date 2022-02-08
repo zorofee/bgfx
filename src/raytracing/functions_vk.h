@@ -75,6 +75,18 @@ namespace bgfx {
 		vkUnmapMemory,
 		vkUpdateDescriptorSets,
 		vkWaitForFences,
+		vkCreateShaderModule,
+		vkDestroyPipeline,
+		vkCmdBindPipeline,
+		vkCmdBindDescriptorSets,
+		vkCmdPushConstants,
+		vkCmdTraceRaysKHR,
+		vkCreateDeferredOperationKHR,
+		vkDestroyDeferredOperationKHR,
+		vkGetDeferredOperationMaxConcurrencyKHR,
+		vkGetDeferredOperationResultKHR,
+		vkDeferredOperationJoinKHR,
+		vkGetRayTracingShaderGroupHandlesKHR,
 	};
 
 	class FunctionMapVk

@@ -4447,6 +4447,18 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkBindAccelerationStructureMemoryNV)
 			INSERT_FUNC(vkDestroyAccelerationStructureNV)
 			INSERT_FUNC(vkGetAccelerationStructureMemoryRequirementsNV)
+			INSERT_FUNC(vkCreateShaderModule)
+			INSERT_FUNC(vkDestroyPipeline)
+			INSERT_FUNC(vkCmdBindPipeline)
+			INSERT_FUNC(vkCmdBindDescriptorSets)
+			INSERT_FUNC(vkCmdPushConstants)
+			INSERT_FUNC(vkCmdTraceRaysKHR)
+			INSERT_FUNC(vkCreateDeferredOperationKHR)
+			INSERT_FUNC(vkDestroyDeferredOperationKHR)
+			INSERT_FUNC(vkGetDeferredOperationMaxConcurrencyKHR)
+			INSERT_FUNC(vkGetDeferredOperationResultKHR)
+			INSERT_FUNC(vkDeferredOperationJoinKHR)
+			INSERT_FUNC(vkGetRayTracingShaderGroupHandlesKHR)
 #undef INSERT_FUNC
 
 

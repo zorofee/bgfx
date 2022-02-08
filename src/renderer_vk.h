@@ -194,7 +194,8 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkCreateRayTracingPipelinesKHR);  \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetFenceStatus);                \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory2);              \
-			/* VK_KHR_raytracing */										   \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdPushConstants);               \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdTraceRaysKHR);               \
 			VK_IMPORT_DEVICE_FUNC(false, vkCmdBuildAccelerationStructuresKHR); \
 			VK_IMPORT_DEVICE_FUNC(false, vkCmdCopyAccelerationStructureKHR); \
 			VK_IMPORT_DEVICE_FUNC(false, vkCmdWriteAccelerationStructuresPropertiesKHR); \
@@ -208,11 +209,17 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferDeviceAddress);	       \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetQueryPoolResults);		   \
 			VK_IMPORT_DEVICE_FUNC(false, vkResetQueryPool);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkCreateDeferredOperationKHR);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkDestroyDeferredOperationKHR);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetDeferredOperationMaxConcurrencyKHR);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetDeferredOperationResultKHR);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkDeferredOperationJoinKHR);				   \
 			/* VK_Raytracing_NV functions */                               \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateAccelerationStructureNV); \
 			VK_IMPORT_DEVICE_FUNC(true,  vkBindAccelerationStructureMemoryNV); \
 			VK_IMPORT_DEVICE_FUNC(true,  vkDestroyAccelerationStructureNV); \
 			VK_IMPORT_DEVICE_FUNC(true,  vkGetAccelerationStructureMemoryRequirementsNV); \
+			VK_IMPORT_DEVICE_FUNC(true,  vkGetRayTracingShaderGroupHandlesKHR); \
 			/* VK_KHR_swapchain */                                         \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateSwapchainKHR);            \
 			VK_IMPORT_DEVICE_FUNC(true,  vkDestroySwapchainKHR);           \
