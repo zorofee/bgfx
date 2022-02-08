@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <array>
 #include "raytracing_vk.h"
+#include "rtx_pipeline.h"
 
 namespace bgfx {
 
@@ -68,6 +69,10 @@ namespace bgfx {
 		// command requires graphic queue and not only transfer.
 		m_scene.setup(m_device, info.physicalDevice, info.queueIndices[0], m_queue, &m_alloc);
 
+		RtxPipeline* r = new RtxPipeline;
+
+		int testfamilyindex = 0;
+		r->setup(m_device,m_physicalDevice, testfamilyindex,&m_alloc);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::setup(const VkInstance& instance,
