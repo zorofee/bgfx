@@ -262,3 +262,139 @@ void bgfx::RaytracingBuilderKHR::destroyNonCompacted(std::vector<uint32_t> indic
 	}
 }
 // todo
+
+void bgfx::RaytracingBuilderKHR::buildTlas(const std::vector<VkAccelerationStructureInstanceKHR>& instances,
+	VkBuildAccelerationStructureFlagsKHR flags /*= VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR*/,
+	bool                                 update /*= false*/)
+{
+	buildTlas(instances, flags, update, false);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Low level of Tlas creation - see buildTlas
+//
+void bgfx::RaytracingBuilderKHR::cmdCreateTlas(VkCommandBuffer                      cmdBuf,
+	uint32_t                             countInstance,
+	VkDeviceAddress                      instBufferAddr,
+	bgfx::Buffer& scratchBuffer,
+	VkBuildAccelerationStructureFlagsKHR flags,
+	bool                                 update,
+	bool                                 motion)
+{
+	// Wraps a device pointer to the above uploaded instances.
+	VkAccelerationStructureGeometryInstancesDataKHR instancesVk{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR };
+	instancesVk.data.deviceAddress = instBufferAddr;
+
+	// Put the above into a VkAccelerationStructureGeometryKHR. We need to put the instances struct in a union and label it as instance data.
+	VkAccelerationStructureGeometryKHR topASGeometry{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR };
+	topASGeometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+	topASGeometry.geometry.instances = instancesVk;
+
+	// Find sizes
+	VkAccelerationStructureBuildGeometryInfoKHR buildInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR };
+	buildInfo.flags = flags;
+	buildInfo.geometryCount = 1;
+	buildInfo.pGeometries = &topASGeometry;
+	buildInfo.mode = update ? VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR : VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+	buildInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+	buildInfo.srcAccelerationStructure = VK_NULL_HANDLE;
+
+	VkAccelerationStructureBuildSizesInfoKHR sizeInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
+	BGFX_VKAPI(vkGetAccelerationStructureBuildSizesKHR)(m_device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &buildInfo,
+		&countInstance, &sizeInfo);
+
+#ifdef VK_NV_ray_tracing_motion_blur
+	VkAccelerationStructureMotionInfoNV motionInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_MOTION_INFO_NV };
+	motionInfo.maxInstances = countInstance;
+#endif
+
+	// Create TLAS
+	if (update == false)
+	{
+
+		VkAccelerationStructureCreateInfoKHR createInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR };
+		createInfo.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR;
+		createInfo.size = sizeInfo.accelerationStructureSize;
+#ifdef VK_NV_ray_tracing_motion_blur
+		if (motion)
+		{
+			createInfo.createFlags = VK_ACCELERATION_STRUCTURE_CREATE_MOTION_BIT_NV;
+			createInfo.pNext = &motionInfo;
+		}
+#endif
+
+		m_tlas = m_alloc->createAcceleration(createInfo);
+		NAME_VK(m_tlas.accel);
+		NAME_VK(m_tlas.buffer.buffer);
+	}
+
+	// Allocate the scratch memory
+	scratchBuffer = m_alloc->createBuffer(sizeInfo.buildScratchSize,
+		VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+
+	VkBufferDeviceAddressInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, scratchBuffer.buffer };
+	VkDeviceAddress           scratchAddress = BGFX_VKAPI(vkGetBufferDeviceAddress)(m_device, &bufferInfo);
+	NAME_VK(scratchBuffer.buffer);
+
+	// Update build information
+	buildInfo.srcAccelerationStructure = update ? m_tlas.accel : VK_NULL_HANDLE;
+	buildInfo.dstAccelerationStructure = m_tlas.accel;
+	buildInfo.scratchData.deviceAddress = scratchAddress;
+
+	// Build Offsets info: n instances
+	VkAccelerationStructureBuildRangeInfoKHR        buildOffsetInfo{ countInstance, 0, 0, 0 };
+	const VkAccelerationStructureBuildRangeInfoKHR* pBuildOffsetInfo = &buildOffsetInfo;
+
+	// Build the TLAS
+	BGFX_VKAPI(vkCmdBuildAccelerationStructuresKHR)(cmdBuf, 1, &buildInfo, &pBuildOffsetInfo);
+}
+
+//--------------------------------------------------------------------------------------------------
+// Refit BLAS number blasIdx from updated buffer contents.
+//
+void bgfx::RaytracingBuilderKHR::updateBlas(uint32_t blasIdx, BlasInput& blas, VkBuildAccelerationStructureFlagsKHR flags)
+{
+	assert(size_t(blasIdx) < m_blas.size());
+
+	// Preparing all build information, acceleration is filled later
+	VkAccelerationStructureBuildGeometryInfoKHR buildInfos{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR };
+	buildInfos.flags = flags;
+	buildInfos.geometryCount = (uint32_t)blas.asGeometry.size();
+	buildInfos.pGeometries = blas.asGeometry.data();
+	buildInfos.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR;  // UPDATE
+	buildInfos.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR;
+	buildInfos.srcAccelerationStructure = m_blas[blasIdx].accel;  // UPDATE
+	buildInfos.dstAccelerationStructure = m_blas[blasIdx].accel;
+
+	// Find size to build on the device
+	std::vector<uint32_t> maxPrimCount(blas.asBuildOffsetInfo.size());
+	for (auto tt = 0; tt < blas.asBuildOffsetInfo.size(); tt++)
+		maxPrimCount[tt] = blas.asBuildOffsetInfo[tt].primitiveCount;  // Number of primitives/triangles
+	VkAccelerationStructureBuildSizesInfoKHR sizeInfo{ VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
+	BGFX_VKAPI(vkGetAccelerationStructureBuildSizesKHR)(m_device, VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &buildInfos,
+		maxPrimCount.data(), &sizeInfo);
+
+	// Allocate the scratch buffer and setting the scratch info
+	bgfx::Buffer scratchBuffer =
+		m_alloc->createBuffer(sizeInfo.buildScratchSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT);
+	VkBufferDeviceAddressInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO };
+	bufferInfo.buffer = scratchBuffer.buffer;
+	buildInfos.scratchData.deviceAddress = BGFX_VKAPI(vkGetBufferDeviceAddress)(m_device, &bufferInfo);
+	NAME_VK(scratchBuffer.buffer);
+
+	std::vector<const VkAccelerationStructureBuildRangeInfoKHR*> pBuildOffset(blas.asBuildOffsetInfo.size());
+	for (size_t i = 0; i < blas.asBuildOffsetInfo.size(); i++)
+		pBuildOffset[i] = &blas.asBuildOffsetInfo[i];
+
+	// Update the instance buffer on the device side and build the TLAS
+	bgfx::CommandPool genCmdBuf(m_device, m_queueIndex);
+	VkCommandBuffer   cmdBuf = genCmdBuf.createCommandBuffer();
+
+
+	// Update the acceleration structure. Note the VK_TRUE parameter to trigger the update,
+	// and the existing BLAS being passed and updated in place
+	BGFX_VKAPI(vkCmdBuildAccelerationStructuresKHR)(cmdBuf, 1, &buildInfos, pBuildOffset.data());
+
+	genCmdBuf.submitAndWait(cmdBuf);
+	m_alloc->destroy(scratchBuffer);
+}

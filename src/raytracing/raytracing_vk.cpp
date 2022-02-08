@@ -62,8 +62,11 @@ namespace bgfx {
 		m_alloc.init(info.instance, info.device, info.physicalDevice);
 		// m_debug.setup(m_device);
 		// Compute queues can be use for acceleration structures
-		// 暂时用info.queueIndices[0] + 2
-		m_accelStruct.setup(m_device, info.physicalDevice, info.queueIndices[0] + 2, &m_alloc);
+		m_accelStruct.setup(m_device, info.physicalDevice, info.queueIndices[0], &m_alloc);
+
+		// Note: the GTC family queue is used because the nvvk::cmdGenerateMipmaps uses vkCmdBlitImage and this
+		// command requires graphic queue and not only transfer.
+		m_scene.setup(m_device, info.physicalDevice, info.queueIndices[0], m_queue, &m_alloc);
 
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -109,7 +112,8 @@ namespace bgfx {
 
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::initRayTracing() {
+	void RayTracingVK::initRayTracing()
+	{
 		VkPhysicalDeviceProperties2 prop2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
 		prop2.pNext = &m_rtProperties;
 		BGFX_VKAPI(vkGetPhysicalDeviceProperties2)(m_physicalDevice, &prop2);
@@ -117,9 +121,9 @@ namespace bgfx {
 		//m_rtBuilder.setup(m_device,nullptr,m_graphicsQueueIndex);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createBottomLevelAS()
+	void RayTracingVK::initRayTracingScene(void* verticesData, void* indicesData)
 	{
-
+		m_scene.initRayTracingScene(verticesData, indicesData);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createRtPipeline(const  bgfx::vk::ProgramVK& _program)
@@ -227,8 +231,9 @@ namespace bgfx {
 		/**/
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createAccelerationStructure(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index)
+	void RayTracingVK::createAccelerationStructure()
 	{
-		//m_accelStruct.create(m_scene.getScene(), vertex, index);
+		// m_scene需要把场景组织到自己的gltfScene
+		m_accelStruct.create(m_scene.getScene(), m_scene.getBuffers(RayTracingScene::eVertex), m_scene.getBuffers(RayTracingScene::eIndex));
 	}
 }

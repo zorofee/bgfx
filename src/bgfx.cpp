@@ -5524,6 +5524,16 @@ namespace bgfx
 		s_ctx->m_renderCtx->setupRaytracing();
 	}
 
+	void initRayTracingScene(void* verticesData, void* indicesData)
+	{
+		s_ctx->m_renderCtx->initRayTracingScene(verticesData, indicesData);
+	}
+
+	void createAccelerationStructure()
+	{
+		s_ctx->m_renderCtx->createAccelerationStructure();
+	}
+
 #undef BGFX_CHECK_ENCODER0
 
 } // namespace bgfx

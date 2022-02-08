@@ -34,14 +34,14 @@ namespace bgfx
 
 		uint32_t primMeshesSize;
 		createBottomLevelAS(gltfScene, vertex, index);
-		createTopLevelAS();
+		createTopLevelAS(gltfScene);
 		createRtDescriptorSet();
 	}
 
 
 	//--------------------------------------------------------------------------------------------------
+	// Converting a GLTF primitive in the Raytracing Geometry used for the BLAS
 	//
-	// uint32_t vertexCount,  uint32_t indexCount, 
 	bgfx::RaytracingBuilderKHR::BlasInput AccelStructure::primitiveToGeometry(const bgfx::GltfPrimMesh& prim, VkBuffer vertex, VkBuffer index)
 	{
 		// Building part
@@ -102,15 +102,43 @@ namespace bgfx
 	//--------------------------------------------------------------------------------------------------
 	//
 	//
-	void AccelStructure::createTopLevelAS()
+	void AccelStructure::createTopLevelAS(bgfx::GltfScene& gltfScene)
 	{
+		std::vector<VkAccelerationStructureInstanceKHR> tlas;
+		tlas.reserve(gltfScene.m_nodes.size());
 
+		for (auto& node : gltfScene.m_nodes)
+		{
+			// Flags
+			VkGeometryInstanceFlagsKHR flags{};
+			bgfx::GltfPrimMesh& primMesh = gltfScene.m_primMeshes[node.primMesh];
+			// 目前手写了一个简单且唯一的材质
+			bgfx::GltfMaterial& mat = gltfScene.m_materials[primMesh.materialIndex];
+
+			// Always opaque, no need to use anyhit (faster)
+			if (mat.alphaMode == 0 || (mat.baseColorFactor.w == 1.0f && mat.baseColorTexture == -1))
+				flags |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
+			// Need to skip the cull flag in traceray_rtx for double sided materials
+			if (mat.doubleSided == 1)
+				flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+
+			VkAccelerationStructureInstanceKHR rayInst{};
+			rayInst.transform								= bgfx::toTransformMatrixKHR(node.worldMatrix);
+			rayInst.instanceCustomIndex						= node.primMesh;  // gl_InstanceCustomIndexEXT: to find which primitive
+			rayInst.accelerationStructureReference			= m_rtBuilder.getBlasDeviceAddress(node.primMesh);
+			rayInst.flags									= flags;
+			rayInst.instanceShaderBindingTableRecordOffset	= 0;  // We will use the same hit group for all objects
+			rayInst.mask									= 0xFF;
+			tlas.emplace_back(rayInst);
+		}
+		LOGI(" TLAS(%d)", tlas.size());
+		m_rtBuilder.buildTlas(tlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR);
 	}
 
 
 	//--------------------------------------------------------------------------------------------------
-// Descriptor set holding the TLAS
-//
+	// Descriptor set holding the TLAS
+	//
 	void AccelStructure::createRtDescriptorSet()
 	{
 		VkShaderStageFlags flags = VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR

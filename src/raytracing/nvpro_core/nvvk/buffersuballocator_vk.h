@@ -235,7 +235,7 @@ protected:
     uint32_t                             index  = INVALID_ID_INDEX;
     VkDeviceSize                         size   = 0;
     VkBuffer                             buffer = VK_NULL_HANDLE;
-    nvh::TRangeAllocator<BASE_ALIGNMENT> range;
+    bgfx::TRangeAllocator<BASE_ALIGNMENT> range;
     MemHandle                            memory = NullMemHandle;
     uint8_t*                             mapping = nullptr;
     VkDeviceAddress                      address = 0;

@@ -437,7 +437,7 @@ protected:
   {
     BlockID                   id{};  // index to self, or next free item
     VkDeviceMemory            mem = VK_NULL_HANDLE;
-    nvh::TRangeAllocator<256> range;
+    bgfx::TRangeAllocator<256> range;
 
     VkDeviceSize allocationSize = 0;
     VkDeviceSize usedSize       = 0;

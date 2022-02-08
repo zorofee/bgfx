@@ -190,8 +190,8 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkInvalidateMappedMemoryRanges);  \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindBufferMemory);              \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory);               \
-			/* VK_Raytracing_KHR */                                       \
-			VK_IMPORT_DEVICE_FUNC(true,  vkCreateRayTracingPipelinesKHR);   \
+			/* VK_Raytracing_KHR */                                        \
+			VK_IMPORT_DEVICE_FUNC(false, vkCreateRayTracingPipelinesKHR);  \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetFenceStatus);                \
 			VK_IMPORT_DEVICE_FUNC(false, vkBindImageMemory2);              \
 			/* VK_KHR_raytracing */										   \
@@ -208,11 +208,11 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferDeviceAddress);	       \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetQueryPoolResults);		   \
 			VK_IMPORT_DEVICE_FUNC(false, vkResetQueryPool);				   \
-			/* NV_raytracing functions */                                  \
-			VK_IMPORT_DEVICE_FUNC(true, vkCreateAccelerationStructureNV);  \
-			VK_IMPORT_DEVICE_FUNC(true, vkBindAccelerationStructureMemoryNV); \
-			VK_IMPORT_DEVICE_FUNC(true, vkDestroyAccelerationStructureNV); \
-			VK_IMPORT_DEVICE_FUNC(true, vkGetAccelerationStructureMemoryRequirementsNV); \
+			/* VK_Raytracing_NV functions */                               \
+			VK_IMPORT_DEVICE_FUNC(true,  vkCreateAccelerationStructureNV); \
+			VK_IMPORT_DEVICE_FUNC(true,  vkBindAccelerationStructureMemoryNV); \
+			VK_IMPORT_DEVICE_FUNC(true,  vkDestroyAccelerationStructureNV); \
+			VK_IMPORT_DEVICE_FUNC(true,  vkGetAccelerationStructureMemoryRequirementsNV); \
 			/* VK_KHR_swapchain */                                         \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateSwapchainKHR);            \
 			VK_IMPORT_DEVICE_FUNC(true,  vkDestroySwapchainKHR);           \

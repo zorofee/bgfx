@@ -43,6 +43,21 @@ struct PosNormalTangentTexcoordVertex
 	static bgfx::VertexLayout ms_layout;
 };
 
+struct PosNormalTangentTexcoordVertexRaw
+{
+	float m_x;
+	float m_y;
+	float m_z;
+	float m_nx;
+	float m_ny;
+	float m_nz;
+	float m_tx;
+	float m_ty;
+	float m_tz;
+	int16_t m_u;
+	int16_t m_v;
+};
+
 bgfx::VertexLayout PosNormalTangentTexcoordVertex::ms_layout;
 
 struct PosTexCoord0Vertex
@@ -114,6 +129,34 @@ static PosNormalTangentTexcoordVertex s_cubeVertices[24] =
 	{-1.0f,  1.0f,  1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f), 0, 0x7fff,      0 },
 	{-1.0f, -1.0f, -1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f), 0,      0, 0x7fff },
 	{-1.0f,  1.0f, -1.0f, encodeNormalRgba8(-1.0f,  0.0f,  0.0f), 0, 0x7fff, 0x7fff },
+};
+
+static PosNormalTangentTexcoordVertexRaw s_cubeVertices2[24] =
+{
+	{-1.0f,  1.0f,  1.0f, 0.0f,  0.0f,  1.0f, 0, 0, 0,      0,      0 },
+	{ 1.0f,  1.0f,  1.0f, 0.0f,  0.0f,  1.0f, 0, 0, 0, 0x7fff,      0 },
+	{-1.0f, -1.0f,  1.0f, 0.0f,  0.0f,  1.0f, 0, 0, 0,      0, 0x7fff },
+	{ 1.0f, -1.0f,  1.0f, 0.0f,  0.0f,  1.0f, 0, 0, 0, 0x7fff, 0x7fff },
+	{-1.0f,  1.0f, -1.0f, 0.0f,  0.0f, -1.0f, 0, 0, 0,      0,      0 },
+	{ 1.0f,  1.0f, -1.0f, 0.0f,  0.0f, -1.0f, 0, 0, 0, 0x7fff,      0 },
+	{-1.0f, -1.0f, -1.0f, 0.0f,  0.0f, -1.0f, 0, 0, 0,      0, 0x7fff },
+	{ 1.0f, -1.0f, -1.0f, 0.0f,  0.0f, -1.0f, 0, 0, 0, 0x7fff, 0x7fff },
+	{-1.0f,  1.0f,  1.0f, 0.0f,  1.0f,  0.0f, 0, 0, 0,      0,      0 },
+	{ 1.0f,  1.0f,  1.0f, 0.0f,  1.0f,  0.0f, 0, 0, 0, 0x7fff,      0 },
+	{-1.0f,  1.0f, -1.0f, 0.0f,  1.0f,  0.0f, 0, 0, 0,      0, 0x7fff },
+	{ 1.0f,  1.0f, -1.0f, 0.0f,  1.0f,  0.0f, 0, 0, 0, 0x7fff, 0x7fff },
+	{-1.0f, -1.0f,  1.0f, 0.0f, -1.0f,  0.0f, 0, 0, 0,      0,      0 },
+	{ 1.0f, -1.0f,  1.0f, 0.0f, -1.0f,  0.0f, 0, 0, 0, 0x7fff,      0 },
+	{-1.0f, -1.0f, -1.0f, 0.0f, -1.0f,  0.0f, 0, 0, 0,      0, 0x7fff },
+	{ 1.0f, -1.0f, -1.0f, 0.0f, -1.0f,  0.0f, 0, 0, 0, 0x7fff, 0x7fff },
+	{ 1.0f, -1.0f,  1.0f, 1.0f,  0.0f,  0.0f, 0, 0, 0,      0,      0 },
+	{ 1.0f,  1.0f,  1.0f, 1.0f,  0.0f,  0.0f, 0, 0, 0, 0x7fff,      0 },
+	{ 1.0f, -1.0f, -1.0f, 1.0f,  0.0f,  0.0f, 0, 0, 0,      0, 0x7fff },
+	{ 1.0f,  1.0f, -1.0f, 1.0f,  0.0f,  0.0f, 0, 0, 0, 0x7fff, 0x7fff },
+	{-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0, 0, 0,      0,      0 },
+	{-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0, 0, 0, 0x7fff,      0 },
+	{-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0, 0, 0,      0, 0x7fff },
+	{-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0, 0, 0, 0x7fff, 0x7fff },
 };
 
 static const uint16_t s_cubeIndices[36] =
@@ -301,10 +344,16 @@ public:
 	void initRayTracing()
 	{
 		bgfx::setupRaytracing();
+		// 调用scene 的 processRawData
+		bgfx::initRayTracingScene(s_cubeVertices2, (void*)s_cubeIndices);
+	}
+	void createAccelerationStructure()
+	{
+		bgfx::createAccelerationStructure();
 	}
 	void createBottomLevelAS()
 	{
-
+		// todo bgfx::createBottomLevelAS()
 	}
 	void createTopLevelAS() {}
 	void createRtDescriptorSet() {}
@@ -386,10 +435,11 @@ public:
 
 		cameraCreate();
 
-		cameraSetPosition({ 0.0f, 0.0f, -15.0f });
+		cameraSetPosition({ 5.0f, 0.0f, -35.0f });
 		cameraSetVerticalAngle(0.0f);
 
 		initRayTracing();
+		createAccelerationStructure();
 	}
 
 	virtual int shutdown() override

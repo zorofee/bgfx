@@ -4465,6 +4465,16 @@ VK_IMPORT_DEVICE
 			//m_raytracingVK.createRtPipeline(program);
 		}
 
+		void initRayTracingScene(void* verticesData, void* indicesData) override
+		{
+			m_raytracingVK.initRayTracingScene(verticesData, indicesData);
+		}
+
+		void createAccelerationStructure()
+		{
+			m_raytracingVK.createAccelerationStructure();
+		}
+
 		VkAllocationCallbacks*   m_allocatorCb;
 		VkDebugReportCallbackEXT m_debugReportCallback;
 		VkInstance       m_instance;

@@ -31,7 +31,7 @@
 #include <intrin.h>
 #endif
 
-namespace nvh {
+namespace bgfx {
 
 /**
   \class nvh::TRangeAllocator

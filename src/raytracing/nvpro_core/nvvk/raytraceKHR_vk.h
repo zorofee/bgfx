@@ -93,13 +93,13 @@ namespace bgfx {
 				| VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
 			NAME_VK(instancesBuffer.buffer);
 			VkBufferDeviceAddressInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, nullptr, instancesBuffer.buffer };
-			VkDeviceAddress           instBufferAddr = vkGetBufferDeviceAddress(m_device, &bufferInfo);
+			VkDeviceAddress           instBufferAddr = BGFX_VKAPI(vkGetBufferDeviceAddress)(m_device, &bufferInfo);
 
 			// Make sure the copy of the instance buffer are copied before triggering the acceleration structure build
 			VkMemoryBarrier barrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
-			vkCmdPipelineBarrier(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+			BGFX_VKAPI(vkCmdPipelineBarrier)(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
 				0, 1, &barrier, 0, nullptr, 0, nullptr);
 
 			// Creating the TLAS
@@ -122,23 +122,6 @@ namespace bgfx {
 			bool                                 update,          // Update == animation
 			bool                                 motion           // Motion Blur
 		);
-
-
-#ifdef VULKAN_HPP
-	public:
-		void buildBlas(const std::vector<RaytracingBuilderKHR::BlasInput>& blas_, vk::BuildAccelerationStructureFlagsKHR flags)
-		{
-			buildBlas(blas_, static_cast<VkBuildAccelerationStructureFlagsKHR>(flags));
-		}
-
-		void buildTlas(const std::vector<VkAccelerationStructureInstanceKHR>& instances,
-			vk::BuildAccelerationStructureFlagsKHR                 flags,
-			bool                                                   update = false)
-		{
-			buildTlas(instances, static_cast<VkBuildAccelerationStructureFlagsKHR>(flags), update);
-		}
-
-#endif
 
 	protected:
 		std::vector<bgfx::AccelKHR> m_blas;  // Bottom-level acceleration structure

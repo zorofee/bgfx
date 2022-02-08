@@ -4,7 +4,7 @@
 #include "vulkan-local/vulkan_core.h"
 #include <vulkan-local/vulkan.h>
 #include "accelstruct.h"
-//#include "raytracing_scene.h"
+#include "raytracing_scene.h"
 #include "nvpro_core/nvmath/nvmath.h"
 #include "raytracing_builder.h"
 #include "functions_vk.h"
@@ -83,7 +83,7 @@ namespace bgfx{
 
 		void initRayTracing();
 
-		void createBottomLevelAS();
+		void initRayTracingScene(void* verticesData, void* indicesData);
 
 		void reateTopLevelAS();
 
@@ -93,7 +93,7 @@ namespace bgfx{
 
 		void createRtShaderBindingTable();
 
-		void createAccelerationStructure(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index);
+		void createAccelerationStructure();
 
 	protected:
 		VkInstance		 m_instance{};
@@ -116,7 +116,7 @@ namespace bgfx{
 
 	public:
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_rtProperties{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
-		//RayTracingScene		m_scene;
+		RayTracingScene		m_scene;
 		RayTracingBuilder	m_rtBuilder;
 		AccelStructure		m_accelStruct;
 		Allocator			m_alloc;  // Allocator for buffer, images, acceleration structures

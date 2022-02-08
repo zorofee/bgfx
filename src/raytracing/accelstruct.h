@@ -22,7 +22,7 @@ namespace bgfx
 	private:
 		bgfx::RaytracingBuilderKHR::BlasInput primitiveToGeometry(const bgfx::GltfPrimMesh& prim, VkBuffer vertex, VkBuffer index);
 		void                                  createBottomLevelAS(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index);
-		void                                  createTopLevelAS();
+		void                                  createTopLevelAS(bgfx::GltfScene& gltfScene);
 		void                                  createRtDescriptorSet();
 
 		// Setup
