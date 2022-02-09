@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 #include "../nvmath/nvmath.h"
 //#include "tiny_gltf.h"
 #include <algorithm>
@@ -122,6 +121,7 @@ namespace bgfx
 		void destroy();
 
 		static GltfStats getStatistics();
+		void addTestNode(GltfNode pnode);
 
 		// Scene data
 		std::vector<GltfMaterial> m_materials;   // Material for shading

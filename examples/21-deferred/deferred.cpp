@@ -347,19 +347,6 @@ public:
 		// 调用scene 的 processRawData
 		bgfx::initRayTracingScene(s_cubeVertices2, (void*)s_cubeIndices);
 	}
-	void createAccelerationStructure()
-	{
-		bgfx::createAccelerationStructure();
-	}
-	void createBottomLevelAS()
-	{
-		// todo bgfx::createBottomLevelAS()
-	}
-	void createTopLevelAS() {}
-	void createRtDescriptorSet() {}
-	void createRtPipeline() {}
-	void createRtShaderBindingTable() {}
-
 
 	void updateGUI()
 	{
@@ -439,7 +426,6 @@ public:
 		cameraSetVerticalAngle(0.0f);
 
 		initRayTracing();
-		createAccelerationStructure();
 	}
 
 	virtual int shutdown() override

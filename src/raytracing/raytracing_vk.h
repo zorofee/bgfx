@@ -10,6 +10,7 @@
 #include "functions_vk.h"
 #include "queue.h"
 #include "../renderer_vk.h"
+#include "rtx_pipeline.h"
 
 #define ALLOC_DMA  // <--- This is in the CMakeLists.txt
 #include "nvpro_core/nvvk/resource_allocator.h"
@@ -33,6 +34,7 @@ namespace bgfx{
 		VkInstance instance{};
 		VkDevice	device{};
 		VkPhysicalDevice physicalDevice{};
+		std::vector<uint32_t> queueFamilyIndices{};
 		std::vector<uint32_t> queueIndices{};
 		VkSurfaceKHR  surface{};
 		VkExtent2D  sie{};
@@ -62,7 +64,7 @@ namespace bgfx{
 	class RayTracingVK : public RayTracingBase{
 	public:
 
-		enum Queues
+		enum EQueues
 		{
 			eGCT0,
 			eGCT1,
@@ -72,16 +74,10 @@ namespace bgfx{
 
 		void setListOfFunctions(std::map<EVkFunctionName,void*>& funcMap);
 		// const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex
-		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, const std::vector<bgfx::Queue>& queues);
 
-		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex, uint32_t computQueueIndex);
-
-		void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t graphicsQueueIndex);
 		void setup(const VkRayTracingCreateInfo& info);
 
 		void setSwapChain();
-
-		void initRayTracing();
 
 		void initRayTracingScene(void* verticesData, void* indicesData);
 
@@ -95,14 +91,16 @@ namespace bgfx{
 
 		void createAccelerationStructure();
 
+		void createRender();
+
 	protected:
 		VkInstance		 m_instance{};
 		VkDevice		 m_device{};
 		VkSurfaceKHR	 m_surface{};
 		VkPhysicalDevice m_physicalDevice{};
-		VkQueue          m_queue{ VK_NULL_HANDLE };
 		VkCommandPool	 m_cmdPool{ VK_NULL_HANDLE };
-		uint32_t         m_graphicsQueueIndex{ VK_QUEUE_FAMILY_IGNORED };
+		uint32_t         m_queueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
+		std::vector<bgfx::Queue> m_queues;
 
 		// #Drawing/Surface
 		VkPipelineCache              m_pipelineCache{ VK_NULL_HANDLE };  // Cache for pipeline/shaders
@@ -121,7 +119,9 @@ namespace bgfx{
 		AccelStructure		m_accelStruct;
 		Allocator			m_alloc;  // Allocator for buffer, images, acceleration structures
 		//bgfx::DebugUtil		m_debug;  // Utility to name objects
+		VkExtent2D                   m_size{ 0, 0 };
 
+		Renderer* m_render;
 	};
 
 }

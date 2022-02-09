@@ -1787,7 +1787,7 @@ VK_IMPORT_INSTANCE
 				dcqi.pNext = NULL;
 				dcqi.flags = 0;
 				dcqi.queueFamilyIndex = m_globalQueueFamily;
-				dcqi.queueCount       = 1;
+				dcqi.queueCount       = 5;
 				dcqi.pQueuePriorities = queuePriorities;
 
 				VkDeviceCreateInfo dci;
@@ -4466,26 +4466,20 @@ VK_IMPORT_DEVICE
 			info.instance = m_instance;
 			info.device = m_device;
 			info.physicalDevice = m_physicalDevice;
-			info.queueIndices = { m_globalQueueFamily };
+			info.queueFamilyIndices = { m_globalQueueFamily };
+			info.queueIndices = {1,2,3,4};
 
 			m_raytracingVK.setListOfFunctions(funcMap);
-			//m_raytracingVK.setup(m_instance, m_device, m_physicalDevice, m_globalQueueFamily, m_globalQueueFamily + 2);
 			m_raytracingVK.setup(info);
-			m_raytracingVK.initRayTracing();
-
-			//ProgramVK& program = m_program[0];
-			//m_raytracingVK.createRtPipeline(program);
 		}
 
 		void initRayTracingScene(void* verticesData, void* indicesData) override
 		{
 			m_raytracingVK.initRayTracingScene(verticesData, indicesData);
+			m_raytracingVK.createAccelerationStructure();
+			m_raytracingVK.createRender();
 		}
 
-		void createAccelerationStructure()
-		{
-			m_raytracingVK.createAccelerationStructure();
-		}
 
 		VkAllocationCallbacks*   m_allocatorCb;
 		VkDebugReportCallbackEXT m_debugReportCallback;

@@ -124,8 +124,7 @@ namespace bgfx {
 		}
 		else
 		{
-			PFN_vkGetDeviceQueue* vkGetDeviceQueue = (PFN_vkGetDeviceQueue*)FunctionMapVk::Get()->getFunction(EVkFunctionName::vkGetDeviceQueue);
-			(*vkGetDeviceQueue)(device, familyIndex, 0, &m_queue);
+			BGFX_VKAPI(vkGetDeviceQueue)(device, familyIndex, 0, &m_queue);
 		}
 	}
 

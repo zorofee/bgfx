@@ -40,6 +40,11 @@ void RayTracingScene::initRayTracingScene(void* verticesData, void* indicesData)
 		LOGI("Convert to internal GLTF");
 		gltf.importMaterials();
 		gltf.processRawVerticesData(verticesData, indicesData);
+		//just for test
+		bgfx::GltfNode pnode;
+		pnode.worldMatrix = nvmath::mat4f(1);
+		pnode.primMesh = 0;
+		gltf.addTestNode(pnode);
 	}
 
 	// We are using a different index (1), to allow loading in a different queue/thread than the display (0) is using

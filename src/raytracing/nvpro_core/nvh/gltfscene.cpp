@@ -1,3 +1,4 @@
+#pragma once 
 #include "gltfscene.h"
 #include "../nvh/nvprint.h"
 #include <iostream>
@@ -104,13 +105,14 @@ namespace bgfx
 
 		m_primMeshes.emplace_back(resultMesh);
 
-		// 处理到一个 node 中
-		bgfx::GltfNode node;
-		node.worldMatrix = nvmath::mat4f(1);
-		node.primMesh = 0;
-		m_nodes.emplace_back(node);
-	}
 
+		
+	}
+	//--------------------------------------------------------------------------------------------------
+	void GltfScene::addTestNode(GltfNode node)
+	{
+		m_nodes.push_back(node);
+	}
 	//--------------------------------------------------------------------------------------------------
 	// Retrieving information about the scene
 	// 临时使用手写的 cube Stats 

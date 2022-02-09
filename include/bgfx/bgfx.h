@@ -4165,7 +4165,6 @@ namespace bgfx
 
 	void setupRaytracing();
 	void initRayTracingScene(void* verticesData, void* indicesData);
-	void createAccelerationStructure();
 
 } // namespace bgfx
 

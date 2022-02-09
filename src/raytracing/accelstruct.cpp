@@ -106,20 +106,20 @@ namespace bgfx
 	{
 		std::vector<VkAccelerationStructureInstanceKHR> tlas;
 		tlas.reserve(gltfScene.m_nodes.size());
-
+		
 		for (auto& node : gltfScene.m_nodes)
 		{
 			// Flags
 			VkGeometryInstanceFlagsKHR flags{};
 			bgfx::GltfPrimMesh& primMesh = gltfScene.m_primMeshes[node.primMesh];
 			// 目前手写了一个简单且唯一的材质
-			bgfx::GltfMaterial& mat = gltfScene.m_materials[primMesh.materialIndex];
-
+			//bgfx::GltfMaterial mattt;//= gltfScene.m_materials[primMesh.materialIndex];
+			//bgfx::TestMaterial mattt;
 			// Always opaque, no need to use anyhit (faster)
-			if (mat.alphaMode == 0 || (mat.baseColorFactor.w == 1.0f && mat.baseColorTexture == -1))
+			//if (mattt.alphaMode == 0 || (mattt.baseColorFactor.w == 1.0f && mattt.baseColorTexture == -1))
 				flags |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
 			// Need to skip the cull flag in traceray_rtx for double sided materials
-			if (mat.doubleSided == 1)
+			//if (mattt.doubleSided == 1)
 				flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 
 			VkAccelerationStructureInstanceKHR rayInst{};
@@ -149,7 +149,6 @@ namespace bgfx
 		m_rtDescPool = bind.createPool(m_device);
 		CREATE_NAMED_VK(m_rtDescSetLayout, bind.createLayout(m_device));
 		CREATE_NAMED_VK(m_rtDescSet, bgfx::allocateDescriptorSet(m_device, m_rtDescPool, m_rtDescSetLayout));
-
 
 		VkAccelerationStructureKHR tlas = m_rtBuilder.getAccelerationStructure();
 

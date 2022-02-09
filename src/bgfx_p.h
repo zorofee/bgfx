@@ -2977,7 +2977,6 @@ namespace bgfx
 		virtual void blitRender(TextVideoMemBlitter& _blitter, uint32_t _numIndices) = 0;
 		virtual void setupRaytracing() { }
 		virtual void initRayTracingScene(void* verticesData, void* indicesData) { }
-		virtual void createAccelerationStructure() { }
 	};
 
 	inline RendererContextI::~RendererContextI()
