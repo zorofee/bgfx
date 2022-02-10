@@ -346,7 +346,7 @@ public:
 		const char* DamagedHelmet = "gltfScenes/DamagedHelmet/DamagedHelmet.gltf";
 		const char* shirt = "gltfScenes/shirt/shirts_test_v5.gltf";
 		bgfx::setupRaytracing();
-		bgfx::initRayTracingScene(shirt);
+		bgfx::initRayTracingScene(DamagedHelmet);
 		// 调用scene 的 processRawData
 		//bgfx::initRayTracingScene(s_cubeVertices2, (void*)s_cubeIndices);
 	}
