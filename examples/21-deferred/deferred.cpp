@@ -343,9 +343,12 @@ public:
 	//VKRay
 	void initRayTracing()
 	{
+		const char* DamagedHelmet = "gltfScenes/DamagedHelmet/DamagedHelmet.gltf";
+		const char* shirt = "gltfScenes/shirt/shirts_test_v5.gltf";
 		bgfx::setupRaytracing();
+		bgfx::initRayTracingScene(shirt);
 		// 调用scene 的 processRawData
-		bgfx::initRayTracingScene(s_cubeVertices2, (void*)s_cubeIndices);
+		//bgfx::initRayTracingScene(s_cubeVertices2, (void*)s_cubeIndices);
 	}
 
 	void updateGUI()

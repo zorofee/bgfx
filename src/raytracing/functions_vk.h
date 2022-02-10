@@ -57,6 +57,7 @@ namespace bgfx {
 		vkGetAccelerationStructureDeviceAddressKHR,
 		vkGetAccelerationStructureMemoryRequirementsNV,
 		vkGetBufferDeviceAddress,
+		vkGetBufferDeviceAddressKHR,
 		vkGetBufferMemoryRequirements2,
 		vkGetDeviceQueue,
 		vkGetImageMemoryRequirements2,

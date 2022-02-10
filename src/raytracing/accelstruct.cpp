@@ -2,7 +2,7 @@
 #include "accelstruct.h"
 #include "nvpro_core/nvvk/raytraceKHR_vk.h"
 #include "shaders/host_device.h"
-//#include "tools.hpp"
+#include "tools.h"
 
 #include <sstream>
 #include <ios>
@@ -29,13 +29,14 @@ namespace bgfx
 
 	void AccelStructure::create(bgfx::GltfScene& gltfScene, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index)
 	{
+		MilliTimer timer;
 		LOGI("Create acceleration structure \n");
 		destroy();  // reset
 
-		uint32_t primMeshesSize;
 		createBottomLevelAS(gltfScene, vertex, index);
 		createTopLevelAS(gltfScene);
 		createRtDescriptorSet();
+		timer.print();
 	}
 
 
@@ -95,6 +96,7 @@ namespace bgfx
 			allBlas.push_back({ geo });
 			prim_idx++;
 		}
+		LOGI(" BLAS(%d)", allBlas.size());
 		m_rtBuilder.buildBlas(allBlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR
 			| VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
 	}
@@ -111,15 +113,13 @@ namespace bgfx
 		{
 			// Flags
 			VkGeometryInstanceFlagsKHR flags{};
-			bgfx::GltfPrimMesh& primMesh = gltfScene.m_primMeshes[node.primMesh];
-			// 目前手写了一个简单且唯一的材质
-			//bgfx::GltfMaterial mattt;//= gltfScene.m_materials[primMesh.materialIndex];
-			//bgfx::TestMaterial mattt;
+			bgfx::GltfPrimMesh& primMesh	= gltfScene.m_primMeshes[node.primMesh];
+			bgfx::GltfMaterial& mat			= gltfScene.m_materials[primMesh.materialIndex];
 			// Always opaque, no need to use anyhit (faster)
-			//if (mattt.alphaMode == 0 || (mattt.baseColorFactor.w == 1.0f && mattt.baseColorTexture == -1))
+			if (mat.alphaMode == 0 || (mat.baseColorFactor.w == 1.0f && mat.baseColorTexture == -1))
 				flags |= VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
 			// Need to skip the cull flag in traceray_rtx for double sided materials
-			//if (mattt.doubleSided == 1)
+			if (mat.doubleSided == 1)
 				flags |= VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 
 			VkAccelerationStructureInstanceKHR rayInst{};

@@ -317,6 +317,8 @@ VK_IMPORT_DEVICE
 			EXT_acceleration_structure,
 			EXT_ray_tracing_pipeline,
 			EXT_deferred_host_operations,
+			EXT_shader_clock,
+			EXT_buffer_device_address,
 
 			Count
 		};
@@ -342,9 +344,12 @@ VK_IMPORT_DEVICE
 		{ "VK_EXT_shader_viewport_index_layer",     1, false, false, true                                                         , Layer::Count },
 		{ "VK_EXT_custom_border_color",             1, false, false, true                                                         , Layer::Count },
 
-		{ "VK_KHR_acceleration_structure",             1, false, false, true                                                         , Layer::Count },
-		{ "VK_KHR_ray_tracing_pipeline",             1, false, false, true                                                         , Layer::Count },
-		{ "VK_KHR_deferred_host_operations",             1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_acceleration_structure",          1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_ray_tracing_pipeline",            1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_deferred_host_operations",        1, false, false, true                                                         , Layer::Count },
+		{ "VK_KHR_shader_clock",					1, false, false, true														  , Layer::Count },
+		{ "VK_KHR_buffer_device_address",			1, false, false, true														  , Layer::Count },
+
 	};
 	BX_STATIC_ASSERT(Extension::Count == BX_COUNTOF(s_extension) );
 
@@ -1185,6 +1190,10 @@ VK_IMPORT
 				s_extension[Extension::EXT_ray_tracing_pipeline].m_supported = true;
 				s_extension[Extension::EXT_deferred_host_operations].m_initialize = true;
 				s_extension[Extension::EXT_deferred_host_operations].m_supported = true;
+				s_extension[Extension::EXT_shader_clock].m_initialize = true;
+				s_extension[Extension::EXT_shader_clock].m_supported = true;
+				s_extension[Extension::EXT_buffer_device_address].m_initialize = true;
+				s_extension[Extension::EXT_buffer_device_address].m_supported = true;
 
 				uint32_t numEnabledLayers = 0;
 
@@ -4425,6 +4434,7 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkGetAccelerationStructureBuildSizesKHR)
 			INSERT_FUNC(vkGetAccelerationStructureDeviceAddressKHR)
 			INSERT_FUNC(vkGetBufferDeviceAddress)
+			INSERT_FUNC(vkGetBufferDeviceAddressKHR)
 			INSERT_FUNC(vkGetBufferMemoryRequirements2)
 			INSERT_FUNC(vkGetDeviceQueue)
 			INSERT_FUNC(vkGetImageMemoryRequirements2)
@@ -4471,6 +4481,13 @@ VK_IMPORT_DEVICE
 
 			m_raytracingVK.setListOfFunctions(funcMap);
 			m_raytracingVK.setup(info);
+		}
+
+		void initRayTracingScene(const char* filename) override
+		{
+			m_raytracingVK.initRayTracingScene(filename);
+			m_raytracingVK.createAccelerationStructure();
+			m_raytracingVK.createRender();
 		}
 
 		void initRayTracingScene(void* verticesData, void* indicesData) override

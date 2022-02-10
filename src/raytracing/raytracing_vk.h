@@ -79,6 +79,8 @@ namespace bgfx{
 
 		void setSwapChain();
 
+		void initRayTracingScene(const char* filename);
+
 		void initRayTracingScene(void* verticesData, void* indicesData);
 
 		void reateTopLevelAS();

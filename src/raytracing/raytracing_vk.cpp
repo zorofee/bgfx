@@ -56,6 +56,17 @@ namespace bgfx {
 		m_render->setup(m_device,m_physicalDevice, m_queues[eTransfer].familyIndex,&m_alloc);
 	}
 	//--------------------------------------------------------------------------------------------------
+	// Loading the scene file, setting up all scene buffers, create the acceleration structures
+	// for the loaded models.
+	// Reorganize tinyGLtf::Model data into struct GltfScene.
+	//
+	void RayTracingVK::initRayTracingScene(const char* filename)
+	{
+		std::string fn = filename;
+		m_scene.load(fn);
+		//m_accelStruct.create(m_scene.getScene(), m_scene.getBuffers(RayTracingScene::eVertex), m_scene.getBuffers(RayTracingScene::eIndex));
+	}
+	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::initRayTracingScene(void* verticesData, void* indicesData)
 	{
 		m_scene.initRayTracingScene(verticesData, indicesData);

@@ -207,6 +207,7 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkGetAccelerationStructureDeviceAddressKHR);\
 			VK_IMPORT_DEVICE_FUNC(false, vkDestroyAccelerationStructureKHR); \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferDeviceAddress);	       \
+			VK_IMPORT_DEVICE_FUNC(false, vkGetBufferDeviceAddressKHR);	   \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetQueryPoolResults);		   \
 			VK_IMPORT_DEVICE_FUNC(false, vkResetQueryPool);				   \
 			VK_IMPORT_DEVICE_FUNC(false, vkCreateDeferredOperationKHR);				   \
