@@ -1,3 +1,4 @@
+#include "nvpro_core/nvh/cameramanipulator.h"
 #include "nvpro_core/nvvk/buffers_vk.h"
 #include "nvpro_core/nvvk/descriptorsets_vk.h"
 #include "nvpro_core/nvvk/images_vk.h"
@@ -619,31 +620,31 @@ namespace bgfx
 	//
 	void RayTracingScene::updateCamera(const VkCommandBuffer& cmdBuf, float aspectRatio)
 	{
-		/*
-		const auto& view = CameraManip.getMatrix();
-		const auto  proj = nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.001f, 100000.0f);
-		m_camera.viewInverse = nvmath::invert(view);
-		m_camera.projInverse = nvmath::invert(proj);
+		
+		const auto& view		= CameraManip.getMatrix();
+		const auto  proj		= nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.001f, 100000.0f);
+		m_camera.viewInverse	= nvmath::invert(view);
+		m_camera.projInverse	= nvmath::invert(proj);
 	
 		// Focal is the interest point
 		nvmath::vec3f eye, center, up;
 		CameraManip.getLookat(eye, center, up);
-		m_camera.focalDist = nvmath::length(center - eye);
-		*/
+		m_camera.focalDist		= nvmath::length(center - eye);
+		
 		//[todo]
-		m_camera.focalDist = 1624;
-		m_camera.viewInverse = {
-			0.827159643,-0.227144361,0.514015973,3.29389095,
-			0,0.914672792,0.404195100,2.78130865,
-			-0.561967134,-0.334333867,0.756580353,3.22379065,
-			0,0,0,1.0
-		};
-		m_camera.projInverse = {
-			0.297039181,0,0,0,
-			0,-0.202500209,0,0,
-			0,0,0,-1,
-			0,0,-999.999939,999.999939
-		};
+		//m_camera.focalDist = 1624;
+		//m_camera.viewInverse = {
+		//	0.827159643,-0.227144361,0.514015973,3.29389095,
+		//	0,0.914672792,0.404195100,2.78130865,
+		//	-0.561967134,-0.334333867,0.756580353,3.22379065,
+		//	0,0,0,1.0
+		//};
+		//m_camera.projInverse = {
+		//	0.297039181,0,0,0,
+		//	0,-0.202500209,0,0,
+		//	0,0,0,-1,
+		//	0,0,-999.999939,999.999939
+		//};
 	
 		// UBO on the device
 		VkBuffer deviceUBO = m_buffer[eCameraMat].buffer;
