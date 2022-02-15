@@ -614,4 +614,63 @@ namespace bgfx
 		m_gltf = {};
 	}
 
+	//--------------------------------------------------------------------------------------------------
+	// Updating camera matrix
+	//
+	void RayTracingScene::updateCamera(const VkCommandBuffer& cmdBuf, float aspectRatio)
+	{
+		/*
+		const auto& view = CameraManip.getMatrix();
+		const auto  proj = nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.001f, 100000.0f);
+		m_camera.viewInverse = nvmath::invert(view);
+		m_camera.projInverse = nvmath::invert(proj);
+	
+		// Focal is the interest point
+		nvmath::vec3f eye, center, up;
+		CameraManip.getLookat(eye, center, up);
+		m_camera.focalDist = nvmath::length(center - eye);
+		*/
+		//[todo]
+		m_camera.focalDist = 1624;
+		m_camera.viewInverse = {
+			0.827159643,-0.227144361,0.514015973,3.29389095,
+			0,0.914672792,0.404195100,2.78130865,
+			-0.561967134,-0.334333867,0.756580353,3.22379065,
+			0,0,0,1.0
+		};
+		m_camera.projInverse = {
+			0.297039181,0,0,0,
+			0,-0.202500209,0,0,
+			0,0,0,-1,
+			0,0,-999.999939,999.999939
+		};
+	
+		// UBO on the device
+		VkBuffer deviceUBO = m_buffer[eCameraMat].buffer;
+
+		// Ensure that the modified UBO is not visible to previous frames.
+		VkBufferMemoryBarrier beforeBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+		beforeBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		beforeBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		beforeBarrier.buffer = deviceUBO;
+		beforeBarrier.size = sizeof(m_camera);
+		BGFX_VKAPI(vkCmdPipelineBarrier)(cmdBuf, VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &beforeBarrier, 0, nullptr);
+
+
+		// Schedule the host-to-device upload. (hostUBO is copied into the cmd
+		// buffer so it is okay to deallocate when the function returns).
+		BGFX_VKAPI(vkCmdUpdateBuffer)(cmdBuf, deviceUBO, 0, sizeof(SceneCamera), &m_camera);
+
+		// Making sure the updated UBO will be visible.
+		VkBufferMemoryBarrier afterBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+		afterBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		afterBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		afterBarrier.buffer = deviceUBO;
+		afterBarrier.size = sizeof(m_camera);
+		BGFX_VKAPI(vkCmdPipelineBarrier)(cmdBuf, VK_PIPELINE_STAGE_TRANSFER_BIT,
+			VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+			VK_DEPENDENCY_DEVICE_GROUP_BIT, 0, nullptr, 1, &afterBarrier, 0, nullptr);
+	}
+
 }

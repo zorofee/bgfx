@@ -44,7 +44,10 @@ namespace bgfx
 		void createInstanceDataBuffer(VkCommandBuffer cmdBuf, bgfx::GltfScene& gltf);
 
 		void destroy();
+		void updateCamera(const VkCommandBuffer& cmdBuf, float aspectRatio);
 
+		VkDescriptorSetLayout            getDescLayout() { return m_descSetLayout; }
+		VkDescriptorSet                  getDescSet() { return m_descSet; }
 
 		bgfx::GltfScene& getScene() { return m_gltf; }
 		const std::vector<bgfx::Buffer>& getBuffers(EBuffers b) { return m_buffers[b]; }

@@ -4437,6 +4437,7 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkGetBufferDeviceAddressKHR)
 			INSERT_FUNC(vkGetBufferMemoryRequirements2)
 			INSERT_FUNC(vkGetDeviceQueue)
+			INSERT_FUNC(vkGetImageMemoryRequirements)
 			INSERT_FUNC(vkGetImageMemoryRequirements2)
 			INSERT_FUNC(vkGetPhysicalDeviceMemoryProperties)
 			INSERT_FUNC(vkGetPhysicalDeviceProperties2)
@@ -4469,6 +4470,19 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkGetDeferredOperationResultKHR)
 			INSERT_FUNC(vkDeferredOperationJoinKHR)
 			INSERT_FUNC(vkGetRayTracingShaderGroupHandlesKHR)
+			INSERT_FUNC(vkCreateRenderPass)
+			INSERT_FUNC(vkDestroyRenderPass)
+			INSERT_FUNC(vkCreateFramebuffer)
+			INSERT_FUNC(vkDestroyFramebuffer)
+			INSERT_FUNC(vkCreateSwapchainKHR)
+			INSERT_FUNC(vkCreateGraphicsPipelines)
+			INSERT_FUNC(vkGetPhysicalDeviceFormatProperties)
+			INSERT_FUNC(vkCmdDraw)
+			INSERT_FUNC(vkCmdBeginRenderPass)
+			INSERT_FUNC(vkCmdEndRenderPass)
+			INSERT_FUNC(vkCmdUpdateBuffer)
+			INSERT_FUNC(vkCmdSetViewport)
+			INSERT_FUNC(vkCmdSetScissor)
 #undef INSERT_FUNC
 
 
@@ -4485,15 +4499,29 @@ VK_IMPORT_DEVICE
 
 		void initRayTracingScene(const char* filename) override
 		{
+			m_raytracingVK.createCommandBuffers();
+			//m_raytracingVK.createDepthBuffer();
+			m_raytracingVK.createRenderPass();
+			m_raytracingVK.createFrameBuffers();
+			m_raytracingVK.createOffscreenRender();
+
 			m_raytracingVK.initRayTracingScene(filename);
 			m_raytracingVK.createAccelerationStructure();
+			m_raytracingVK.createDescriptorSetLayout();
 			m_raytracingVK.createRender();
 		}
 
 		void initRayTracingScene(void* verticesData, void* indicesData) override
 		{
+			m_raytracingVK.createCommandBuffers();
+			m_raytracingVK.createDepthBuffer();
+			m_raytracingVK.createRenderPass();
+			m_raytracingVK.createFrameBuffers();
+			m_raytracingVK.createOffscreenRender();
+
 			m_raytracingVK.initRayTracingScene(verticesData, indicesData);
 			m_raytracingVK.createAccelerationStructure();
+			m_raytracingVK.createDescriptorSetLayout();
 			m_raytracingVK.createRender();
 		}
 
@@ -8344,6 +8372,7 @@ VK_DESTROY
 						? m_frameBuffers[m_fbh.idx]
 						: m_backBuffer
 						;
+					//m_raytracingVK.render(fb.m_currentFramebuffer);
 
 					isFrameBufferValid = fb.isRenderable();
 

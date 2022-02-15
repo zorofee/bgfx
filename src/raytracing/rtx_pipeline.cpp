@@ -252,13 +252,22 @@ void RtxPipeline::createPipeline()
 //--------------------------------------------------------------------------------------------------
 // Ray Tracing the scene
 //
-void RtxPipeline::run(const VkCommandBuffer& cmdBuf, const VkExtent2D& size, bgfx::ProfilerVK& profiler, const std::vector<VkDescriptorSet>& descSets)
+void RtxPipeline::run(const VkCommandBuffer& cmdBuf, const VkExtent2D& size, const std::vector<VkDescriptorSet>& descSets)
 {
-  LABEL_SCOPE_VK(cmdBuf);
+  //LABEL_SCOPE_VK(cmdBuf);      //crash.      [todo]
 
   BGFX_VKAPI(vkCmdBindPipeline)(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_rtPipeline);
   BGFX_VKAPI(vkCmdBindDescriptorSets)(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_rtPipelineLayout, 0,
                           static_cast<uint32_t>(descSets.size()), descSets.data(), 0, nullptr);
+
+  //[todo]
+  m_state.maxDepth = 10;
+  m_state.maxSamples = 1;
+  m_state.fireflyClampThreshold = 32;
+  m_state.hdrMultiplier = 1;
+  m_state.size = { 1018,694 };
+  m_state.maxHeatmap = 65000;
+
   BGFX_VKAPI(vkCmdPushConstants)(cmdBuf, m_rtPipelineLayout,
                      VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR | VK_SHADER_STAGE_MISS_BIT_KHR,
                      0, sizeof(RtxState), &m_state);

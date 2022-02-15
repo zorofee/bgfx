@@ -215,6 +215,7 @@
 			VK_IMPORT_DEVICE_FUNC(false, vkGetDeferredOperationMaxConcurrencyKHR);				   \
 			VK_IMPORT_DEVICE_FUNC(false, vkGetDeferredOperationResultKHR);				   \
 			VK_IMPORT_DEVICE_FUNC(false, vkDeferredOperationJoinKHR);				   \
+			VK_IMPORT_DEVICE_FUNC(false, vkCmdUpdateBuffer);				   \
 			/* VK_Raytracing_NV functions */                               \
 			VK_IMPORT_DEVICE_FUNC(true,  vkCreateAccelerationStructureNV); \
 			VK_IMPORT_DEVICE_FUNC(true,  vkBindAccelerationStructureMemoryNV); \

@@ -38,7 +38,7 @@ public:
   virtual void              destroy()                                              = 0;
   virtual void              run(const VkCommandBuffer&              cmdBuf,
                                 const VkExtent2D&                   size,
-                                bgfx::ProfilerVK&                   profiler,
+                               /* bgfx::ProfilerVK&                   profiler,*/
                                 const std::vector<VkDescriptorSet>& extraDescSets) = 0;
   virtual void              create(const VkExtent2D& size, const std::vector<VkDescriptorSetLayout>& extraDescSetsLayout) = 0;
   virtual const std::string name() = 0;

@@ -60,6 +60,7 @@ namespace bgfx {
 		vkGetBufferDeviceAddressKHR,
 		vkGetBufferMemoryRequirements2,
 		vkGetDeviceQueue,
+		vkGetImageMemoryRequirements,
 		vkGetImageMemoryRequirements2,
 		vkGetPhysicalDeviceFeatures,
 		vkGetPhysicalDeviceMemoryProperties,
@@ -88,6 +89,19 @@ namespace bgfx {
 		vkGetDeferredOperationResultKHR,
 		vkDeferredOperationJoinKHR,
 		vkGetRayTracingShaderGroupHandlesKHR,
+		vkCreateRenderPass,
+		vkDestroyRenderPass,
+		vkCreateFramebuffer,
+		vkDestroyFramebuffer,
+		vkCreateSwapchainKHR,
+		vkCreateGraphicsPipelines,
+		vkGetPhysicalDeviceFormatProperties,
+		vkCmdDraw,
+		vkCmdBeginRenderPass,
+		vkCmdEndRenderPass,
+		vkCmdUpdateBuffer,
+		vkCmdSetViewport,
+		vkCmdSetScissor
 	};
 
 	class FunctionMapVk
