@@ -10,6 +10,8 @@
 #	include "renderer_vk.h"
 #	include "shader_spirv.h"
 #	include "raytracing/raytracing_vk.h"
+#include "raytracing/raytracing_test.h"
+#include "raytracing/RenderingSingleFBO.h"
 
 #if BX_PLATFORM_OSX
 #	import <Cocoa/Cocoa.h>
@@ -2666,6 +2668,7 @@ VK_IMPORT_DEVICE
 			}
 		}
 
+		bool test = false;
 		void postReset()
 		{
 			for (uint32_t ii = 0; ii < BX_COUNTOF(m_frameBuffers); ++ii)
@@ -2692,6 +2695,29 @@ VK_IMPORT_DEVICE
 
 				g_callback->captureBegin(m_resolution.width, m_resolution.height, dstPitch, TextureFormat::BGRA8, false);
 			}
+
+
+			if (test)
+			{
+				vkTest.createInstance(m_instance);
+				vkTest.createLogicalDevice(m_device);
+				vkTest.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
+				VkExtent2D _swapChainExtent = { 800,600 };
+				vkTest.createGraphicsPipeline(_swapChainExtent);
+				vkTest.createFramebuffers(m_backBuffer.m_currentFramebuffer);
+				uint32_t _queueFamilyIndex = 0;
+				vkTest.createCommandPool(_queueFamilyIndex);
+				vkTest.createCommandBuffers(_swapChainExtent);
+				//vkTest.createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, imagesInFlight);
+				vkTest.createSyncObjects(2, 3);
+				vkTest.begin();
+
+
+				const char* DamagedHelmet = "gltfScenes/DamagedHelmet/DamagedHelmet.gltf";
+				initRayTracingScene(DamagedHelmet);
+
+			}
+			test = !test;
 		}
 
 		bool updateResolution(const Resolution& _resolution)
@@ -4483,6 +4509,12 @@ VK_IMPORT_DEVICE
 			INSERT_FUNC(vkCmdUpdateBuffer)
 			INSERT_FUNC(vkCmdSetViewport)
 			INSERT_FUNC(vkCmdSetScissor)
+			INSERT_FUNC(vkCreateSemaphore)
+			INSERT_FUNC(vkAcquireNextImageKHR)
+			INSERT_FUNC(vkQueuePresentKHR)
+			INSERT_FUNC(vkGetPhysicalDeviceSurfaceSupportKHR)
+			INSERT_FUNC(vkGetPhysicalDeviceQueueFamilyProperties)
+			INSERT_FUNC(vkGetSwapchainImagesKHR)
 #undef INSERT_FUNC
 
 
@@ -4493,36 +4525,34 @@ VK_IMPORT_DEVICE
 			info.queueFamilyIndices = { m_globalQueueFamily };
 			info.queueIndices = {1,2,3,4};
 
+			
 			m_raytracingVK.setListOfFunctions(funcMap);
 			m_raytracingVK.setup(info);
+
 		}
 
 		void initRayTracingScene(const char* filename) override
 		{
-			m_raytracingVK.createCommandBuffers();
+			VkExtent2D _swapChainExtent = { 800,600 };
+			uint32_t _queueFamilyIndex = 0;
+
+			m_raytracingVK.createCommandPool(_queueFamilyIndex);
+			m_raytracingVK.createCommandBuffer();
 			//m_raytracingVK.createDepthBuffer();
-			m_raytracingVK.createRenderPass();
-			m_raytracingVK.createFrameBuffers();
+			m_raytracingVK.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
+
+			m_raytracingVK.createFrameBuffer(m_backBuffer.m_currentFramebuffer);
+			m_raytracingVK.createSyncObjects(2, 3);
 			m_raytracingVK.createOffscreenRender();
+			const char* env = "gltfScenes/std_env.hdr";
+			m_raytracingVK.loadEnvironmentHdr(env);
 
 			m_raytracingVK.initRayTracingScene(filename);
 			m_raytracingVK.createAccelerationStructure();
 			m_raytracingVK.createDescriptorSetLayout();
 			m_raytracingVK.createRender();
-		}
-
-		void initRayTracingScene(void* verticesData, void* indicesData) override
-		{
-			m_raytracingVK.createCommandBuffers();
-			m_raytracingVK.createDepthBuffer();
-			m_raytracingVK.createRenderPass();
-			m_raytracingVK.createFrameBuffers();
-			m_raytracingVK.createOffscreenRender();
-
-			m_raytracingVK.initRayTracingScene(verticesData, indicesData);
-			m_raytracingVK.createAccelerationStructure();
-			m_raytracingVK.createDescriptorSetLayout();
-			m_raytracingVK.createRender();
+			m_raytracingVK.setRenderRegion(VkRect2D{ 1018,694 });
+			//m_raytracingVK.resetFrame();
 		}
 
 
@@ -4602,6 +4632,8 @@ VK_IMPORT_DEVICE
 
 		std::vector<bgfx::Queue> queues;
 		RayTracingVK m_raytracingVK;
+		//TestApplication vkTest;
+		TestApplicationSingleFBO vkTest;
 	};
 
 	static RendererContextVK* s_renderVK;
@@ -8018,6 +8050,9 @@ VK_DESTROY
 
 			VK_CHECK(vkQueueSubmit(m_queue, 1, &si, m_completedFence) );
 
+			s_renderVK->m_raytracingVK.drawFrame(m_queue,0,0);
+			//s_renderVK->vkTest.drawFrame(m_queue, 0, 0);
+
 			if (_wait)
 			{
 				VK_CHECK(vkWaitForFences(device, 1, &m_completedFence, VK_TRUE, UINT64_MAX) );
@@ -8372,7 +8407,6 @@ VK_DESTROY
 						? m_frameBuffers[m_fbh.idx]
 						: m_backBuffer
 						;
-					//m_raytracingVK.render(fb.m_currentFramebuffer);
 
 					isFrameBufferValid = fb.isRenderable();
 

@@ -43,9 +43,9 @@ void ProfilerVK::init(VkDevice device, VkPhysicalDevice physicalDevice, int queu
 
   std::vector<VkQueueFamilyProperties> queueProperties;
   uint32_t                             queueFamilyCount = 0;
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, nullptr);
+  BGFX_VKAPI(vkGetPhysicalDeviceQueueFamilyProperties)(physicalDevice, &queueFamilyCount, nullptr);
   queueProperties.resize(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueProperties.data());
+  BGFX_VKAPI(vkGetPhysicalDeviceQueueFamilyProperties)(physicalDevice, &queueFamilyCount, queueProperties.data());
 
   uint32_t validBits = queueProperties[queueFamilyIndex].timestampValidBits;
 

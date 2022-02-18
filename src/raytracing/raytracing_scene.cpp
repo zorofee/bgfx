@@ -620,7 +620,7 @@ namespace bgfx
 	//
 	void RayTracingScene::updateCamera(const VkCommandBuffer& cmdBuf, float aspectRatio)
 	{
-		
+		/*
 		const auto& view		= CameraManip.getMatrix();
 		const auto  proj		= nvmath::perspectiveVK(CameraManip.getFov(), aspectRatio, 0.001f, 100000.0f);
 		m_camera.viewInverse	= nvmath::invert(view);
@@ -630,22 +630,22 @@ namespace bgfx
 		nvmath::vec3f eye, center, up;
 		CameraManip.getLookat(eye, center, up);
 		m_camera.focalDist		= nvmath::length(center - eye);
-		
-		//[todo]
-		//m_camera.focalDist = 1624;
-		//m_camera.viewInverse = {
-		//	0.827159643,-0.227144361,0.514015973,3.29389095,
-		//	0,0.914672792,0.404195100,2.78130865,
-		//	-0.561967134,-0.334333867,0.756580353,3.22379065,
-		//	0,0,0,1.0
-		//};
-		//m_camera.projInverse = {
-		//	0.297039181,0,0,0,
-		//	0,-0.202500209,0,0,
-		//	0,0,0,-1,
-		//	0,0,-999.999939,999.999939
-		//};
+		*/
 	
+		m_camera.focalDist = 3.289;
+		m_camera.viewInverse = {
+		 -0.800000012,  0,-0.6, 0,
+		 0,			    1,0,	0,
+		 0.6,           0,-0.8,0,
+		 1.97105503,    -0.187155008,-2.63139248,   1.0
+		};
+		m_camera.projInverse = {
+			 0.846891165,             0,             0,				0,
+			 0,			            -0.577350259,			 0,				0,
+			 0,			              0,			 0,				-999.999939,
+			 0,			              0,			 -1,	        999.999939
+		};
+
 		// UBO on the device
 		VkBuffer deviceUBO = m_buffer[eCameraMat].buffer;
 

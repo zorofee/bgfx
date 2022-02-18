@@ -51,17 +51,15 @@ namespace bgfx {
 			m_queues.push_back(rtQueue);
 		}
 
-		VkCommandPoolCreateInfo poolCreateInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-		poolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		BGFX_VKAPI(vkCreateCommandPool)(m_device, &poolCreateInfo, nullptr, &m_cmdPool);
-
-
 		m_alloc.init(info.instance, info.device, info.physicalDevice);
 		m_debug.setup(m_device);
 
 		m_accelStruct.setup(m_device, info.physicalDevice, m_queues[eCompute].familyIndex, &m_alloc);
-		m_offscreen.setup(m_device, info.physicalDevice, m_queues[eTransfer].familyIndex, &m_alloc);
 		m_scene.setup(m_device, info.physicalDevice, m_queues[eGCT1].familyIndex, m_queues[eGCT1].queue, &m_alloc);
+
+		m_offscreen.setup(m_device, info.physicalDevice, m_queues[eTransfer].familyIndex, &m_alloc);
+		m_skydome.setup(m_device, info.physicalDevice, m_queues[eTransfer].familyIndex, &m_alloc);
+
 
 		m_render = new RtxPipeline;
 		int testfamilyindex = 0;
@@ -93,6 +91,8 @@ namespace bgfx {
 	void RayTracingVK::createRender()
 	{
 		m_render->create(m_size, { m_accelStruct.getDescLayout(), m_offscreen.getDescLayout(), m_scene.getDescLayout(), m_descSetLayout });
+
+		isBegin = true;
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createRenderPass()
@@ -110,12 +110,13 @@ namespace bgfx {
 		attachments[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
 		// Depth attachment
+		/*
 		attachments[1].format = m_depthFormat;
 		attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		attachments[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 		attachments[1].samples = VK_SAMPLE_COUNT_1_BIT;
-
+		*/
 		// One color, one depth
 		const VkAttachmentReference colorReference{ 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
 		const VkAttachmentReference depthReference{ 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
@@ -160,48 +161,9 @@ namespace bgfx {
 		m_offscreen.create(m_size, m_renderPass);
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createFrameBuffers()
+	void RayTracingVK::loadEnvironmentHdr(const std::string& hdrFilename)
 	{
-		// Recreate the frame buffers
-		for (auto framebuffer : m_framebuffers)
-		{
-			BGFX_VKAPI(vkDestroyFramebuffer)(m_device, framebuffer, nullptr);
-		}
-
-		// Array of attachment (color, depth)
-		std::array<VkImageView, 2> attachments{};
-
-		// Create frame buffers for every swap chain image
-		VkFramebufferCreateInfo framebufferCreateInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-		framebufferCreateInfo.renderPass = m_renderPass;
-		framebufferCreateInfo.attachmentCount = 2;
-		framebufferCreateInfo.width = m_size.width;
-		framebufferCreateInfo.height = m_size.height;
-		framebufferCreateInfo.layers = 1;
-		framebufferCreateInfo.pAttachments = attachments.data();
-
-		// Create frame buffers for every swap chain image
-		/*
-		m_framebuffers.resize(m_swapChain.getImageCount());
-		for (uint32_t i = 0; i < m_swapChain.getImageCount(); i++)
-		{
-			attachments[0] = m_swapChain.getImageView(i);
-			attachments[1] = m_depthView;
-			BGFX_VKAPI(vkCreateFramebuffer)(m_device, &framebufferCreateInfo, nullptr, &m_framebuffers[i]);
-		}
-		*/
-
-#ifdef _DEBUG
-		for (size_t i = 0; i < m_framebuffers.size(); i++)
-		{
-			std::string                   name = std::string("AppBase") + std::to_string(i);
-			VkDebugUtilsObjectNameInfoEXT nameInfo{ VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT };
-			nameInfo.objectHandle = (uint64_t)m_framebuffers[i];
-			nameInfo.objectType = VK_OBJECT_TYPE_FRAMEBUFFER;
-			nameInfo.pObjectName = name.c_str();
-			BGFX_VKAPI(vkSetDebugUtilsObjectNameEXT)(m_device, &nameInfo);
-		}
-#endif  // _DEBUG
+		m_skydome.loadEnvironment(hdrFilename);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createDepthBuffer()
@@ -249,7 +211,7 @@ namespace bgfx {
 		// Create an image barrier to change the layout from undefined to DepthStencilAttachmentOptimal
 		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
 		allocateInfo.commandBufferCount = 1;
-		allocateInfo.commandPool = m_cmdPool;
+		allocateInfo.commandPool = m_cmdPool;  //todo
 		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		VkCommandBuffer cmdBuffer;
 		BGFX_VKAPI(vkAllocateCommandBuffers)(m_device, &allocateInfo, &cmdBuffer);
@@ -282,7 +244,7 @@ namespace bgfx {
 		submitInfo.pCommandBuffers = &cmdBuffer;
 		BGFX_VKAPI(vkQueueSubmit)(m_queue, 1, &submitInfo, {});
 		BGFX_VKAPI(vkQueueWaitIdle)(m_queue);
-		BGFX_VKAPI(vkFreeCommandBuffers)(m_device, m_cmdPool, 1, &cmdBuffer);
+		BGFX_VKAPI(vkFreeCommandBuffers)(m_device, m_cmdPool, 1, &cmdBuffer);  //todo
 
 		// Setting up the view
 		VkImageViewCreateInfo depthStencilView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -292,18 +254,6 @@ namespace bgfx {
 		depthStencilView.image = m_depthImage;
 		BGFX_VKAPI(vkCreateImageView)(m_device, &depthStencilView, nullptr, &m_depthView);
 	}
-	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createCommandBuffers()
-	{
-		int count = 2;  //swapchain.getimagecount()
-		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		allocateInfo.commandPool = m_cmdPool;
-		allocateInfo.commandBufferCount = count;
-		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		m_commandBuffers.resize(count);
-		BGFX_VKAPI(vkAllocateCommandBuffers)(m_device, &allocateInfo, m_commandBuffers.data());
-	}
-
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createDescriptorSetLayout()
 	{
@@ -324,28 +274,32 @@ namespace bgfx {
 		std::vector<VkWriteDescriptorSet> writes;
 		VkDescriptorBufferInfo            sunskyDesc{ m_sunAndSkyBuffer.buffer, 0, VK_WHOLE_SIZE };
 		//[todo]
-		//VkDescriptorBufferInfo            accelImpSmpl{ m_skydome.m_accelImpSmpl.buffer, 0, VK_WHOLE_SIZE };
+		VkDescriptorBufferInfo            accelImpSmpl{ m_skydome.m_accelImpSmpl.buffer, 0, VK_WHOLE_SIZE };
 		writes.emplace_back(m_bind.makeWrite(m_descSet, EnvBindings::eSunSky, &sunskyDesc));
-		//writes.emplace_back(m_bind.makeWrite(m_descSet, EnvBindings::eHdr, &m_skydome.m_texHdr.descriptor));
-		//writes.emplace_back(m_bind.makeWrite(m_descSet, EnvBindings::eImpSamples, &accelImpSmpl));
+		writes.emplace_back(m_bind.makeWrite(m_descSet, EnvBindings::eHdr, &m_skydome.m_texHdr.descriptor));
+		writes.emplace_back(m_bind.makeWrite(m_descSet, EnvBindings::eImpSamples, &accelImpSmpl));
 
 		BGFX_VKAPI(vkUpdateDescriptorSets)(m_device, static_cast<uint32_t>(writes.size()), writes.data(), 0, nullptr);
 	}
 
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::render(VkFramebuffer fbo,  uint32_t curFrame)
+	void RayTracingVK::drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
 	{
-		const VkCommandBuffer& cmdBuf = m_commandBuffers[0];
+		if (!isBegin)
+			return;
+
+		updateFrame();
+		//const VkCommandBuffer& cmdBuf = m_commandBuffer;
 
 		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		BGFX_VKAPI(vkBeginCommandBuffer)(cmdBuf, &beginInfo);
+		BGFX_VKAPI(vkBeginCommandBuffer)(m_commandBuffer, &beginInfo);
 
-		
-		updateUniformBuffer(cmdBuf);  // Updating UBOs
+
+		updateUniformBuffer(m_commandBuffer);  // Updating UBOs
 
 		// Rendering Scene (ray tracing)
-		renderScene(cmdBuf);
+		renderScene(m_commandBuffer);
 
 		// Rendering pass in swapchain framebuffer + tone mapper, UI
 		{
@@ -357,35 +311,49 @@ namespace bgfx {
 			postRenderPassBeginInfo.clearValueCount = 2;
 			postRenderPassBeginInfo.pClearValues = clearValues.data();
 			postRenderPassBeginInfo.renderPass = m_renderPass;
-			postRenderPassBeginInfo.framebuffer = fbo;
-			postRenderPassBeginInfo.renderArea = { {}, {400,300} };
+			postRenderPassBeginInfo.framebuffer = m_framebuffer;
+			postRenderPassBeginInfo.renderArea = { {}, {800,600} };
 
-			BGFX_VKAPI(vkCmdBeginRenderPass)(cmdBuf, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
+			BGFX_VKAPI(vkCmdBeginRenderPass)(m_commandBuffer, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
 
 			// Draw the rendering result + tonemapper
-			drawPost(cmdBuf);
+			drawPost(m_commandBuffer);
+
+			BGFX_VKAPI(vkCmdDraw)(m_commandBuffer, 3, 1, 0, 0);
 
 			// Render the UI
-			BGFX_VKAPI(vkCmdEndRenderPass)(cmdBuf);
+			BGFX_VKAPI(vkCmdEndRenderPass)(m_commandBuffer);
 		}
 
 		// Submit for display
-		BGFX_VKAPI(vkEndCommandBuffer)(cmdBuf);
-		submitFrame();
+		BGFX_VKAPI(vkEndCommandBuffer)(m_commandBuffer);
+		submitFrame(graphicsQueue, currentFrame, imageIndex);
 	}
-
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::updateUniformBuffer(const VkCommandBuffer& cmdBuf)
 	{
-		m_renderRegion = { 1080,694 };
+		//m_renderRegion = { 1080,694 };
 		const float aspectRatio = m_renderRegion.extent.width / static_cast<float>(m_renderRegion.extent.height);
 
 		m_scene.updateCamera(cmdBuf, aspectRatio);
 	}
 	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::updateFrame()
+	{
+		if (m_rtxState.frame < m_maxFrames)
+			m_rtxState.frame++;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::resetFrame()
+	{
+		m_rtxState.frame = -1;
+	}
+	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::renderScene(const VkCommandBuffer& cmdBuf)
 	{
-		VkExtent2D render_size = { 1280,720 };
+		VkExtent2D render_size = { 1080,694 };
+		m_rtxState.size = { render_size.width, render_size.height };
+		m_render->setPushContants(m_rtxState);
 		m_render->run(cmdBuf, render_size, { m_accelStruct.getDescSet(), m_offscreen.getDescSet(), m_scene.getDescSet(), m_descSet });
 	}
 	//--------------------------------------------------------------------------------------------------
@@ -402,17 +370,14 @@ namespace bgfx {
 							0.0f,
 							1.0f };
 		VkRect2D   scissor{ m_renderRegion.offset, {m_renderRegion.extent.width, m_renderRegion.extent.height} };
-		BGFX_VKAPI(vkCmdSetViewport)(cmdBuf, 0, 1, &viewport);
-		BGFX_VKAPI(vkCmdSetScissor)(cmdBuf, 0, 1, &scissor);
+		//[todo]
+		//BGFX_VKAPI(vkCmdSetViewport)(cmdBuf, 0, 1, &viewport);
+		//BGFX_VKAPI(vkCmdSetScissor)(cmdBuf, 0, 1, &scissor);
 
 		m_offscreen.m_tonemapper.zoom = 1;// m_descaling ? 1.0f / m_descalingLevel : 1.0f;  //[todo]
-		m_offscreen.m_tonemapper.renderingRatio = size / area;
+		//m_offscreen.m_tonemapper.renderingRatio = size / area;
 		m_offscreen.run(cmdBuf);
 
-	}
-	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::submitFrame()
-	{
 	}
 	//--------------------------------------------------------------------------------------------------
 	uint32_t RayTracingVK::getMemoryType(uint32_t typeBits, const VkMemoryPropertyFlags& properties) const
@@ -431,6 +396,147 @@ namespace bgfx {
 		LOGE(err.c_str());
 		assert(0);
 		return ~0u;
+	}
+
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createFrameBuffer(VkFramebuffer _fbo)
+	{
+		m_framebuffer = _fbo;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createCommandPool(uint32_t _queueFamilyIndex) {
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = _queueFamilyIndex;
+
+		if (BGFX_VKAPI(vkCreateCommandPool)(m_device, &poolInfo, nullptr, &m_cmdPool) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create command pool!");
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createCommandBuffer()
+	{
+		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+		allocateInfo.commandPool = m_cmdPool;   //todo
+		allocateInfo.commandBufferCount = 1;
+		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		BGFX_VKAPI(vkAllocateCommandBuffers)(m_device, &allocateInfo, &m_commandBuffer);
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createSyncObjects(uint32_t _maxframe, uint32_t _imagesize)
+	{
+		imageAvailableSemaphores.resize(_maxframe);
+		renderFinishedSemaphores.resize(_maxframe);
+		inFlightFences.resize(_maxframe);
+		imagesInFlight.resize(_imagesize, VK_NULL_HANDLE);
+
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		for (size_t i = 0; i < _maxframe; i++) {
+			if (BGFX_VKAPI(vkCreateSemaphore)(m_device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+				BGFX_VKAPI(vkCreateSemaphore)(m_device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+				BGFX_VKAPI(vkCreateFence)(m_device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create synchronization objects for a frame!");
+			}
+		}
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::setRenderRegion(const VkRect2D& size)
+	{
+		if (memcmp(&m_renderRegion, &size, sizeof(VkRect2D)) != 0)
+			resetFrame();
+		m_renderRegion = size;
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::submitFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
+	{
+		//uint32_t imageIndex = m_swapChain.getActiveImageIndex();
+		//BGFX_VKAPI(vkResetFences)(m_device, 1, &waitFence);
+
+		// In case of using NVLINK
+		const uint32_t                deviceMask = 0b0000'0001;// m_useNvlink ? 0b0000'0011 : 0b0000'0001;
+		const std::array<uint32_t, 2> deviceIndex = { 0, 1 };
+
+		VkDeviceGroupSubmitInfo deviceGroupSubmitInfo{ VK_STRUCTURE_TYPE_DEVICE_GROUP_SUBMIT_INFO_KHR };
+		deviceGroupSubmitInfo.waitSemaphoreCount = 1;
+		deviceGroupSubmitInfo.commandBufferCount = 1;
+		deviceGroupSubmitInfo.pCommandBufferDeviceMasks = &deviceMask;
+		deviceGroupSubmitInfo.signalSemaphoreCount = 1;//m_useNvlink ? 2 : 1;
+		deviceGroupSubmitInfo.pSignalSemaphoreDeviceIndices = deviceIndex.data();
+		deviceGroupSubmitInfo.pWaitSemaphoreDeviceIndices = deviceIndex.data();
+
+		VkSemaphore semaphoreRead = { imageAvailableSemaphores[currentFrame] };
+		VkSemaphore semaphoreWrite = { renderFinishedSemaphores[currentFrame] };
+
+		// Pipeline stage at which the queue submission will wait (via pWaitSemaphores)
+		const VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		// The submit info structure specifies a command buffer queue submission batch
+		VkSubmitInfo submitInfo{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
+		submitInfo.pWaitDstStageMask = &waitStageMask;  // Pointer to the list of pipeline stages that the semaphore waits will occur at
+		submitInfo.pWaitSemaphores = &semaphoreRead;  // Semaphore(s) to wait upon before the submitted command buffer starts executing
+		submitInfo.waitSemaphoreCount = 1;                // One wait semaphore
+		submitInfo.pSignalSemaphores = &semaphoreWrite;  // Semaphore(s) to be signaled when command buffers have completed
+		submitInfo.signalSemaphoreCount = 1;                // One signal semaphore
+		submitInfo.pCommandBuffers = &m_commandBuffer;  // Command buffers(s) to execute in this batch (submission)
+		submitInfo.commandBufferCount = 1;                           // One command buffer
+		//submitInfo.pNext = &deviceGroupSubmitInfo;
+
+		BGFX_VKAPI(vkResetFences)(m_device, 1, &inFlightFences[currentFrame]);
+
+		// Submit to the graphics queue passing a wait fence
+		BGFX_VKAPI(vkQueueSubmit)(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]);
+
+		// Presenting frame
+		//m_swapChain.present(m_queue);
+
+	}
+	//--------------------------------------------------------------------------------------------------
+	void RayTracingVK::createRenderPass(VkFormat swapChainImageFormat)
+	{
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = swapChainImageFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkSubpassDependency dependency{};
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.dstSubpass = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.srcAccessMask = 0;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+		renderPassInfo.dependencyCount = 1;
+		renderPassInfo.pDependencies = &dependency;
+
+		if (BGFX_VKAPI(vkCreateRenderPass)(m_device, &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create render pass!");
+		}
 	}
 
 }

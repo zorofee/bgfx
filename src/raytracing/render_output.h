@@ -60,7 +60,9 @@ namespace bgfx {
 
 		VkDescriptorSetLayout getDescLayout() { return m_postDescSetLayout; }
 		VkDescriptorSet       getDescSet() { return m_postDescSet; }
-
+		VkPipeline            m_postPipeline{ VK_NULL_HANDLE };
+		VkPipelineLayout      m_postPipelineLayout{ VK_NULL_HANDLE };
+		VkDescriptorSet       m_postDescSet{ VK_NULL_HANDLE };
 	private:
 		void createOffscreenRender(const VkExtent2D& size);
 		void createPostPipeline(const VkRenderPass& renderPass);
@@ -68,9 +70,7 @@ namespace bgfx {
 
 		VkDescriptorPool      m_postDescPool{ VK_NULL_HANDLE };
 		VkDescriptorSetLayout m_postDescSetLayout{ VK_NULL_HANDLE };
-		VkDescriptorSet       m_postDescSet{ VK_NULL_HANDLE };
-		VkPipeline            m_postPipeline{ VK_NULL_HANDLE };
-		VkPipelineLayout      m_postPipelineLayout{ VK_NULL_HANDLE };
+
 		bgfx::Texture         m_offscreenColor;
 		//VkFormat m_offscreenColorFormat{VkFormat::eR16G16B16A16Sfloat};  // Darkening the scene over 5000 iterations
 		VkFormat m_offscreenColorFormat{ VK_FORMAT_R32G32B32A32_SFLOAT };

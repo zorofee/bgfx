@@ -101,7 +101,13 @@ namespace bgfx {
 		vkCmdEndRenderPass,
 		vkCmdUpdateBuffer,
 		vkCmdSetViewport,
-		vkCmdSetScissor
+		vkCmdSetScissor,
+		vkCreateSemaphore,
+		vkAcquireNextImageKHR,
+		vkQueuePresentKHR,
+		vkGetPhysicalDeviceSurfaceSupportKHR,
+		vkGetPhysicalDeviceQueueFamilyProperties,
+		vkGetSwapchainImagesKHR
 	};
 
 	class FunctionMapVk

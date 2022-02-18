@@ -12,6 +12,7 @@
 #include "../renderer_vk.h"
 #include "rtx_pipeline.h"
 #include "render_output.h"
+#include "hdr_sampling.h"
 
 #define ALLOC_DMA  // <--- This is in the CMakeLists.txt
 #include "nvpro_core/nvvk/resource_allocator.h"
@@ -100,14 +101,39 @@ namespace bgfx{
 
 		void createOffscreenRender();
 
-		//-------update---------
-		void render(VkFramebuffer fbo, uint32_t curFrame=0);
+		void loadEnvironmentHdr(const std::string& hdrFilename);
 
+		void createFrameBuffer(VkFramebuffer _fbo);
+		void createCommandBuffer();
+		void createCommandPool(uint32_t _queueFamilyIndex);
+		void createSyncObjects(uint32_t _maxframe, uint32_t _imagesize);
+		void createRenderPass(VkFormat swapChainImageFormat);
+		void createGraphicsPipeline(VkExtent2D swapChainExtent);
+		VkShaderModule createShaderModule(const std::vector<char>& code);
+		std::vector<char> readFile(const std::string& filename);
+
+		VkFramebuffer		m_framebuffer;
+		VkCommandBuffer		m_commandBuffer;
+		VkCommandPool		m_cmdPool;
+		VkPipeline			m_graphicsPipeline;
+
+		std::vector<VkSemaphore> imageAvailableSemaphores;
+		std::vector<VkSemaphore> renderFinishedSemaphores;
+		std::vector<VkFence> inFlightFences;
+		std::vector<VkFence> imagesInFlight;
+
+		//-------update---------
+		void render(VkFramebuffer fbo, uint32_t curFrame, VkFence waitFence, VkSemaphore semaphoreRead, VkSemaphore semaphoreWrite);
+		void updateFrame();
+		void resetFrame();
+		void drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex);
+		void submitFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex);
+		void setRenderRegion(const VkRect2D& size);
 	private:
 		void updateUniformBuffer(const VkCommandBuffer& cmdBuf);
 		void renderScene(const VkCommandBuffer& cmdBuf);
 		void drawPost(const VkCommandBuffer& cmdBuf);
-		void submitFrame();
+		void submitFrame(uint32_t imageIndex, VkFence waitFence, VkSemaphore semaphoreRead, VkSemaphore semaphoreWrite);
 		uint32_t getMemoryType(uint32_t typeBits, const VkMemoryPropertyFlags& properties) const;
 
 	protected:
@@ -115,7 +141,8 @@ namespace bgfx{
 		VkDevice		 m_device{};
 		VkSurfaceKHR	 m_surface{};
 		VkPhysicalDevice m_physicalDevice{};
-		VkCommandPool	 m_cmdPool{ VK_NULL_HANDLE };
+		//VkCommandPool	 m_cmdPool{ VK_NULL_HANDLE };
+
 		uint32_t         m_queueFamilyIndex{ VK_QUEUE_FAMILY_IGNORED };
 		std::vector<bgfx::Queue> m_queues;
 		VkQueue          m_queue{ VK_NULL_HANDLE };
@@ -142,6 +169,7 @@ namespace bgfx{
 		DebugUtil			m_debug;  // Utility to name objects
 		Renderer*			m_render;
 		RenderOutput		m_offscreen;
+		HdrSampling        m_skydome;
 		VkImage                      m_depthImage{ VK_NULL_HANDLE };     // Depth/Stencil
 		VkDeviceMemory               m_depthMemory{ VK_NULL_HANDLE };    // Depth/Stencil
 		VkImageView                  m_depthView{ VK_NULL_HANDLE };      // Depth/Stencil
@@ -158,6 +186,21 @@ namespace bgfx{
 
 		Buffer m_sunAndSkyBuffer;
 
+		bool isBegin = false;
+		RtxState m_rtxState{
+				0,       // frame;
+				10,      // maxDepth;
+				1,       // maxSamples;
+				1,       // fireflyClampThreshold;
+				1,       // hdrMultiplier;
+				0,       // debugging_mode;
+				0,       // pbrMode;
+				0,       // _pad0;
+				{0, 0},  // size;
+				0,       // minHeatmap;
+				65000    // maxHeatmap;
+		};
+		int         m_maxFrames{ 100000 };
 	};
 
 }

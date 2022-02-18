@@ -4164,8 +4164,6 @@ namespace bgfx
 		);
 
 	void setupRaytracing();
-	void initRayTracingScene(const char* filename);
-	void initRayTracingScene(void* verticesData, void* indicesData);
 
 } // namespace bgfx
 
