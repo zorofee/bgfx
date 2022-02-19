@@ -106,7 +106,7 @@ namespace bgfx{
 		//-------update---------
 		void updateFrame();
 
-		void drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex);
+		void drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex,const VkExtent2D& renderArea);
 	private:
 		void updateUniformBuffer(const VkCommandBuffer& cmdBuf);
 

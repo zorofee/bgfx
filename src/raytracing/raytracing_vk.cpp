@@ -283,7 +283,7 @@ namespace bgfx {
 	}
 
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
+	void RayTracingVK::drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex,const VkExtent2D& renderArea)
 	{
 		if (!isBegin)
 			return;
@@ -312,7 +312,8 @@ namespace bgfx {
 			postRenderPassBeginInfo.pClearValues = clearValues.data();
 			postRenderPassBeginInfo.renderPass = m_renderPass;
 			postRenderPassBeginInfo.framebuffer = m_framebuffers[currentFrame];
-			postRenderPassBeginInfo.renderArea = { {}, {800,600} };
+			postRenderPassBeginInfo.renderArea.offset = { 0, 0 };
+			postRenderPassBeginInfo.renderArea.extent = renderArea;
 
 			BGFX_VKAPI(vkCmdBeginRenderPass)(cmdBuf, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
 

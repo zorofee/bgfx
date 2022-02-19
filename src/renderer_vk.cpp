@@ -2707,6 +2707,7 @@ VK_IMPORT_DEVICE
 				initTestScene();
 
 				const char* DamagedHelmet = "gltfScenes/DamagedHelmet/DamagedHelmet.gltf";
+				//const char* shirt = "gltfScenes/shirt/shirts_test_v5.gltf";
 				initRayTracingScene(DamagedHelmet);
 			}
 			test = !test;
@@ -4527,12 +4528,11 @@ VK_IMPORT_DEVICE
 		{
 			VkExtent2D _swapChainExtent = { 800,600 };
 			uint32_t _queueFamilyIndex = 0;
-
+			
 			m_raytracingVK.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[0]);
 			m_raytracingVK.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[1]);
 			m_raytracingVK.createCommandPool(_queueFamilyIndex);
 			m_raytracingVK.createCommandBuffers();
-			//m_raytracingVK.createDepthBuffer();
 			m_raytracingVK.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
 
 
@@ -4546,7 +4546,6 @@ VK_IMPORT_DEVICE
 			m_raytracingVK.createDescriptorSetLayout();
 			m_raytracingVK.createRender();
 			m_raytracingVK.setRenderRegion(VkRect2D{ 1018,694 });
-			//m_raytracingVK.resetFrame();
 		}
 
 		void initTestScene()
@@ -4561,7 +4560,7 @@ VK_IMPORT_DEVICE
 			vkTestSingleFBO.createCommandPool(_queueFamilyIndex);
 			vkTestSingleFBO.createCommandBuffers(_swapChainExtent);
 			//vkTestSingleFBO.createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, imagesInFlight);
-			vkTestSingleFBO.createSyncObjects(2, 3);
+			vkTestSingleFBO.createSyncObjects(2, 2);
 			vkTestSingleFBO.begin();
 
 
@@ -4582,7 +4581,9 @@ VK_IMPORT_DEVICE
 
 		void drawFrame(VkQueue _queue,int _frame)
 		{
-			m_raytracingVK.drawFrame(_queue, _frame, _frame);
+			//const Rect& rect = m_view[view].m_rect;
+			//const Rect& scissorRect = m_view[view].m_scissor;
+			m_raytracingVK.drawFrame(_queue, _frame, _frame,VkExtent2D{1000,700});
 			//vkTestSingleFBO.drawFrame(_queue, 0, 0);
 			//vkTestMultiFBO.drawFrame(_queue, _frame, _frame);
 		}
