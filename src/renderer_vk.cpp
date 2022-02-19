@@ -12,6 +12,7 @@
 #	include "raytracing/raytracing_vk.h"
 #include "raytracing/raytracing_test.h"
 #include "raytracing/RenderingSingleFBO.h"
+#include "raytracing/RenderingMultiFBO.h"
 
 #if BX_PLATFORM_OSX
 #	import <Cocoa/Cocoa.h>
@@ -2699,23 +2700,10 @@ VK_IMPORT_DEVICE
 
 			if (test)
 			{
-				vkTest.createInstance(m_instance);
-				vkTest.createLogicalDevice(m_device);
-				vkTest.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
-				VkExtent2D _swapChainExtent = { 800,600 };
-				vkTest.createGraphicsPipeline(_swapChainExtent);
-				vkTest.createFramebuffers(m_backBuffer.m_currentFramebuffer);
-				uint32_t _queueFamilyIndex = 0;
-				vkTest.createCommandPool(_queueFamilyIndex);
-				vkTest.createCommandBuffers(_swapChainExtent);
-				//vkTest.createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, imagesInFlight);
-				vkTest.createSyncObjects(2, 3);
-				vkTest.begin();
-
+				initTestScene();
 
 				const char* DamagedHelmet = "gltfScenes/DamagedHelmet/DamagedHelmet.gltf";
 				initRayTracingScene(DamagedHelmet);
-
 			}
 			test = !test;
 		}
@@ -4555,6 +4543,35 @@ VK_IMPORT_DEVICE
 			//m_raytracingVK.resetFrame();
 		}
 
+		void initTestScene()
+		{
+			vkTestSingleFBO.createInstance(m_instance);
+			vkTestSingleFBO.createLogicalDevice(m_device);
+			vkTestSingleFBO.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
+			VkExtent2D _swapChainExtent = { 800,600 };
+			vkTestSingleFBO.createGraphicsPipeline(_swapChainExtent);
+			vkTestSingleFBO.createFramebuffers(m_backBuffer.m_currentFramebuffer);
+			uint32_t _queueFamilyIndex = 0;
+			vkTestSingleFBO.createCommandPool(_queueFamilyIndex);
+			vkTestSingleFBO.createCommandBuffers(_swapChainExtent);
+			//vkTestSingleFBO.createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, imagesInFlight);
+			vkTestSingleFBO.createSyncObjects(2, 3);
+			vkTestSingleFBO.begin();
+
+
+
+			vkTestMultiFBO.createInstance(m_instance);
+			vkTestMultiFBO.createLogicalDevice(m_device);
+			vkTestMultiFBO.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
+			vkTestMultiFBO.createGraphicsPipeline(_swapChainExtent);
+			//vkTestMultiFBO.createFramebuffers(m_backBuffer.m_currentFramebuffer);
+		}
+
+		void drawFrame(VkQueue _queue)
+		{
+			m_raytracingVK.drawFrame(_queue, 0, 0);
+			vkTestSingleFBO.drawFrame(_queue, 0, 0);
+		}
 
 		VkAllocationCallbacks*   m_allocatorCb;
 		VkDebugReportCallbackEXT m_debugReportCallback;
@@ -4633,7 +4650,8 @@ VK_IMPORT_DEVICE
 		std::vector<bgfx::Queue> queues;
 		RayTracingVK m_raytracingVK;
 		//TestApplication vkTest;
-		TestApplicationSingleFBO vkTest;
+		RenderingSingleFBO vkTestSingleFBO;
+		RenderingMultiFBO vkTestMultiFBO;
 	};
 
 	static RendererContextVK* s_renderVK;
@@ -8050,8 +8068,8 @@ VK_DESTROY
 
 			VK_CHECK(vkQueueSubmit(m_queue, 1, &si, m_completedFence) );
 
-			s_renderVK->m_raytracingVK.drawFrame(m_queue,0,0);
-			//s_renderVK->vkTest.drawFrame(m_queue, 0, 0);
+		
+			s_renderVK->drawFrame(m_queue);
 
 			if (_wait)
 			{

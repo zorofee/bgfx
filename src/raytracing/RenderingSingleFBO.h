@@ -12,7 +12,7 @@
 
 namespace bgfx
 {
-    class TestApplicationSingleFBO {
+    class RenderingSingleFBO {
 
 	private:
 
