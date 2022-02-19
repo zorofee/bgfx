@@ -96,7 +96,7 @@ namespace bgfx
 			allBlas.push_back({ geo });
 			prim_idx++;
 		}
-		LOGI(" BLAS(%d)", allBlas.size());
+		LOGI(" BLAS(%d)\n", allBlas.size());
 		m_rtBuilder.buildBlas(allBlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR
 			| VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
 	}

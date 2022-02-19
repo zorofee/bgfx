@@ -93,8 +93,8 @@ namespace bgfx
 
 		void createGraphicsPipeline(VkExtent2D swapChainExtent) {
 
-			auto vertShaderCode = readFile("C:/Users/56984/Desktop/Raytracing/learnvulkan/learnvulkan/shaders/RenderingVert2.spv");
-			auto fragShaderCode = readFile("C:/Users/56984/Desktop/Raytracing/learnvulkan/learnvulkan/shaders/RenderingFrag2.spv");
+			auto vertShaderCode = readFile("gltfScenes/testvert.spv");
+			auto fragShaderCode = readFile("gltfScenes/testfrag.spv");
 
 			VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
 			VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);

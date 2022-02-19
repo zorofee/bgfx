@@ -134,14 +134,14 @@ namespace bgfx{
 		BGFX_VKAPI(vkCreatePipelineLayout)(m_device, &pipelineLayoutCreateInfo, nullptr, &m_postPipelineLayout);
 
 		// Pipeline: completely generic, no vertices
-		//std::vector<uint32_t> vertexShader(std::begin(passthrough_vert), std::end(passthrough_vert));
-		//std::vector<uint32_t> fragShader(std::begin(post_frag), std::end(post_frag));
+		std::vector<uint32_t> vertexShader(std::begin(passthrough_vert), std::end(passthrough_vert));
+		std::vector<uint32_t> fragShader(std::begin(post_frag), std::end(post_frag));
 
-		std::vector<std::string> defaultSearchPaths = {
-			"C:/Users/56984/Desktop/Raytracing/nvpro-samples/vk_raytrace/shaders"
-		};
-		std::string vertexShader = nvh::loadFile("passthrough.vert.spv", true, defaultSearchPaths, true);
-		std::string fragShader = nvh::loadFile("post.frag.spv", true, defaultSearchPaths, true);
+		//std::vector<std::string> defaultSearchPaths = {
+		//	"C:/Users/56984/Desktop/Raytracing/nvpro-samples/vk_raytrace/shaders"
+		//};
+		//std::string vertexShader = nvh::loadFile("passthrough.vert.spv", true, defaultSearchPaths, true);
+		//std::string fragShader = nvh::loadFile("post.frag.spv", true, defaultSearchPaths, true);
 
 		bgfx::GraphicsPipelineGeneratorCombined pipelineGenerator(m_device, m_postPipelineLayout, renderPass);
 		pipelineGenerator.addShader(vertexShader, VK_SHADER_STAGE_VERTEX_BIT);
