@@ -106,7 +106,7 @@ namespace bgfx{
 		//-------update---------
 		void updateFrame();
 
-		void drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex,const VkExtent2D& renderArea);
+		void drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex);
 	private:
 		void updateUniformBuffer(const VkCommandBuffer& cmdBuf);
 
@@ -150,7 +150,7 @@ namespace bgfx{
 		VkDeviceMemory               m_depthMemory{ VK_NULL_HANDLE };    // Depth/Stencil
 		VkImageView                  m_depthView{ VK_NULL_HANDLE };      // Depth/Stencil
 
-		VkExtent2D                   m_size{ 0, 0 };
+		VkExtent2D                   m_viewSize{ 0, 0 };
 		VkRect2D					 m_renderRegion{};
 
 		std::vector<VkSemaphore> imageAvailableSemaphores;

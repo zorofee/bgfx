@@ -37,8 +37,7 @@ namespace bgfx {
 		m_device = info.device;
 		m_physicalDevice = info.physicalDevice;
 		m_queueFamilyIndex = info.queueFamilyIndices[0];
-
-		m_size = VkExtent2D{ 1280,720 };
+		m_viewSize = info.viewSize;
 
 		BGFX_VKAPI(vkGetDeviceQueue)(m_device, m_queueFamilyIndex, 0, &m_queue);
 
@@ -90,7 +89,7 @@ namespace bgfx {
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createRender()
 	{
-		m_render->create(m_size, { m_accelStruct.getDescLayout(), m_offscreen.getDescLayout(), m_scene.getDescLayout(), m_descSetLayout });
+		m_render->create(m_viewSize, { m_accelStruct.getDescLayout(), m_offscreen.getDescLayout(), m_scene.getDescLayout(), m_descSetLayout });
 
 		isBegin = true;
 	}
@@ -158,7 +157,7 @@ namespace bgfx {
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createOffscreenRender()
 	{
-		m_offscreen.create(m_size, m_renderPass);
+		m_offscreen.create(m_viewSize, m_renderPass);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::loadEnvironmentHdr(const std::string& hdrFilename)
@@ -179,7 +178,7 @@ namespace bgfx {
 		const VkImageAspectFlags aspect = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 		VkImageCreateInfo        depthStencilCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 		depthStencilCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-		depthStencilCreateInfo.extent = VkExtent3D{ m_size.width, m_size.height, 1 };
+		depthStencilCreateInfo.extent = VkExtent3D{ m_viewSize.width, m_viewSize.height, 1 };
 		depthStencilCreateInfo.format = VK_FORMAT_D24_UNORM_S8_UINT;//m_depthFormat;
 		depthStencilCreateInfo.mipLevels = 1;
 		depthStencilCreateInfo.arrayLayers = 1;
@@ -283,7 +282,7 @@ namespace bgfx {
 	}
 
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex,const VkExtent2D& renderArea)
+	void RayTracingVK::drawFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
 	{
 		if (!isBegin)
 			return;
@@ -313,7 +312,7 @@ namespace bgfx {
 			postRenderPassBeginInfo.renderPass = m_renderPass;
 			postRenderPassBeginInfo.framebuffer = m_framebuffers[currentFrame];
 			postRenderPassBeginInfo.renderArea.offset = { 0, 0 };
-			postRenderPassBeginInfo.renderArea.extent = renderArea;
+			postRenderPassBeginInfo.renderArea.extent = m_viewSize/*renderArea*/;
 
 			BGFX_VKAPI(vkCmdBeginRenderPass)(cmdBuf, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
 
@@ -361,13 +360,13 @@ namespace bgfx {
 	void RayTracingVK::drawPost(const VkCommandBuffer& cmdBuf)
 	{
 		LABEL_SCOPE_VK(cmdBuf);
-		auto size = nvmath::vec2f(m_size.width, m_size.height);
+		auto size = nvmath::vec2f(m_viewSize.width, m_viewSize.height);
 		auto area = nvmath::vec2f(m_renderRegion.extent.width, m_renderRegion.extent.height);
 
 		VkViewport viewport{ static_cast<float>(m_renderRegion.offset.x),
 							static_cast<float>(m_renderRegion.offset.y),
-							static_cast<float>(m_size.width),
-							static_cast<float>(m_size.height),
+							static_cast<float>(m_viewSize.width),
+							static_cast<float>(m_viewSize.height),
 							0.0f,
 							1.0f };
 		VkRect2D   scissor{ m_renderRegion.offset, {m_renderRegion.extent.width, m_renderRegion.extent.height} };

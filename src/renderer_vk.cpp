@@ -4517,16 +4517,14 @@ VK_IMPORT_DEVICE
 			info.physicalDevice = m_physicalDevice;
 			info.queueFamilyIndices = { m_globalQueueFamily };
 			info.queueIndices = {1,2,3,4};
+			info.viewSize = { m_backBuffer.m_width,m_backBuffer.m_height };
 
-			
 			m_raytracingVK.setListOfFunctions(funcMap);
 			m_raytracingVK.setup(info);
-
 		}
 
 		void initRayTracingScene(const char* filename) override
 		{
-			VkExtent2D _swapChainExtent = { 800,600 };
 			uint32_t _queueFamilyIndex = 0;
 			
 			m_raytracingVK.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[0]);
@@ -4583,7 +4581,7 @@ VK_IMPORT_DEVICE
 		{
 			//const Rect& rect = m_view[view].m_rect;
 			//const Rect& scissorRect = m_view[view].m_scissor;
-			m_raytracingVK.drawFrame(_queue, _frame, _frame,VkExtent2D{1000,700});
+			m_raytracingVK.drawFrame(_queue, _frame, _frame);
 			//vkTestSingleFBO.drawFrame(_queue, 0, 0);
 			//vkTestMultiFBO.drawFrame(_queue, _frame, _frame);
 		}
