@@ -2153,12 +2153,16 @@ VK_IMPORT_DEVICE
 
 			for (uint16_t ii = 0; ii < m_numWindows; ++ii)
 			{
-				FrameBufferVK& fb = isValid(m_windows[ii])
-					? m_frameBuffers[m_windows[ii].idx]
-					: m_backBuffer
-					;
-
-				fb.present();
+				if (isValid(m_windows[ii]))
+				{
+					FrameBufferVK& fb = m_frameBuffers[m_windows[ii].idx];
+					fb.present();
+				}
+				else
+				{
+					FrameBufferVK& fb = m_backBuffer;
+					fb.present();
+				}
 			}
 
 			int64_t now = bx::getHPCounter();
@@ -4524,13 +4528,15 @@ VK_IMPORT_DEVICE
 			VkExtent2D _swapChainExtent = { 800,600 };
 			uint32_t _queueFamilyIndex = 0;
 
+			m_raytracingVK.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[0]);
+			m_raytracingVK.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[1]);
 			m_raytracingVK.createCommandPool(_queueFamilyIndex);
-			m_raytracingVK.createCommandBuffer();
+			m_raytracingVK.createCommandBuffers();
 			//m_raytracingVK.createDepthBuffer();
 			m_raytracingVK.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
 
-			m_raytracingVK.createFrameBuffer(m_backBuffer.m_currentFramebuffer);
-			m_raytracingVK.createSyncObjects(2, 3);
+
+			m_raytracingVK.createSyncObjects(2, 2);
 			m_raytracingVK.createOffscreenRender();
 			const char* env = "gltfScenes/std_env.hdr";
 			m_raytracingVK.loadEnvironmentHdr(env);
@@ -4564,13 +4570,21 @@ VK_IMPORT_DEVICE
 			vkTestMultiFBO.createLogicalDevice(m_device);
 			vkTestMultiFBO.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
 			vkTestMultiFBO.createGraphicsPipeline(_swapChainExtent);
-			//vkTestMultiFBO.createFramebuffers(m_backBuffer.m_currentFramebuffer);
+			vkTestMultiFBO.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[0]);
+			vkTestMultiFBO.addFramebuffer(m_backBuffer.m_swapChain.m_backBufferFrameBuffer[1]);
+			//vkTestMultiFBO.addFramebuffer(m_backBuffer.m_currentFramebuffer);
+			//m_backBuffer.m_swapChain.m_backBufferFrameBuffer[0];
+			vkTestMultiFBO.createCommandPool(_queueFamilyIndex);
+			vkTestMultiFBO.createCommandBuffers(_swapChainExtent);
+			vkTestMultiFBO.createSyncObjects(2, 2);
+			vkTestMultiFBO.begin();
 		}
 
-		void drawFrame(VkQueue _queue)
+		void drawFrame(VkQueue _queue,int _frame)
 		{
-			m_raytracingVK.drawFrame(_queue, 0, 0);
-			vkTestSingleFBO.drawFrame(_queue, 0, 0);
+			m_raytracingVK.drawFrame(_queue, _frame, _frame);
+			//vkTestSingleFBO.drawFrame(_queue, 0, 0);
+			//vkTestMultiFBO.drawFrame(_queue, _frame, _frame);
 		}
 
 		VkAllocationCallbacks*   m_allocatorCb;
@@ -8069,7 +8083,7 @@ VK_DESTROY
 			VK_CHECK(vkQueueSubmit(m_queue, 1, &si, m_completedFence) );
 
 		
-			s_renderVK->drawFrame(m_queue);
+			s_renderVK->drawFrame(m_queue, m_currentFrameInFlight);
 
 			if (_wait)
 			{

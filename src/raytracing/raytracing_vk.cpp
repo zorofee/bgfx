@@ -289,17 +289,17 @@ namespace bgfx {
 			return;
 
 		updateFrame();
-		//const VkCommandBuffer& cmdBuf = m_commandBuffer;
+		const VkCommandBuffer& cmdBuf = m_commandBuffers[currentFrame];
 
 		VkCommandBufferBeginInfo beginInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-		BGFX_VKAPI(vkBeginCommandBuffer)(m_commandBuffer, &beginInfo);
+		BGFX_VKAPI(vkBeginCommandBuffer)(cmdBuf, &beginInfo);
 
 
-		updateUniformBuffer(m_commandBuffer);  // Updating UBOs
+		updateUniformBuffer(cmdBuf);  // Updating UBOs
 
 		// Rendering Scene (ray tracing)
-		renderScene(m_commandBuffer);
+		renderScene(cmdBuf);
 
 		// Rendering pass in swapchain framebuffer + tone mapper, UI
 		{
@@ -311,23 +311,23 @@ namespace bgfx {
 			postRenderPassBeginInfo.clearValueCount = 2;
 			postRenderPassBeginInfo.pClearValues = clearValues.data();
 			postRenderPassBeginInfo.renderPass = m_renderPass;
-			postRenderPassBeginInfo.framebuffer = m_framebuffer;
+			postRenderPassBeginInfo.framebuffer = m_framebuffers[currentFrame];
 			postRenderPassBeginInfo.renderArea = { {}, {800,600} };
 
-			BGFX_VKAPI(vkCmdBeginRenderPass)(m_commandBuffer, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
+			BGFX_VKAPI(vkCmdBeginRenderPass)(cmdBuf, &postRenderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);  //如果加上depth attachment就会报错
 
 			// Draw the rendering result + tonemapper
-			drawPost(m_commandBuffer);
+			drawPost(cmdBuf);
 
-			BGFX_VKAPI(vkCmdDraw)(m_commandBuffer, 3, 1, 0, 0);
+			BGFX_VKAPI(vkCmdDraw)(cmdBuf, 3, 1, 0, 0);
 
 			// Render the UI
-			BGFX_VKAPI(vkCmdEndRenderPass)(m_commandBuffer);
+			BGFX_VKAPI(vkCmdEndRenderPass)(cmdBuf);
 		}
 
 		// Submit for display
-		BGFX_VKAPI(vkEndCommandBuffer)(m_commandBuffer);
-		submitFrame(graphicsQueue, currentFrame, imageIndex);
+		BGFX_VKAPI(vkEndCommandBuffer)(cmdBuf);
+		submit(cmdBuf,graphicsQueue, currentFrame, imageIndex);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::updateUniformBuffer(const VkCommandBuffer& cmdBuf)
@@ -397,11 +397,10 @@ namespace bgfx {
 		assert(0);
 		return ~0u;
 	}
-
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createFrameBuffer(VkFramebuffer _fbo)
+	void RayTracingVK::addFramebuffer(VkFramebuffer _fbo)
 	{
-		m_framebuffer = _fbo;
+		m_framebuffers.push_back(_fbo);
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createCommandPool(uint32_t _queueFamilyIndex) {
@@ -414,13 +413,17 @@ namespace bgfx {
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::createCommandBuffer()
+	void RayTracingVK::createCommandBuffers()
 	{
-		VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-		allocateInfo.commandPool = m_cmdPool;   //todo
-		allocateInfo.commandBufferCount = 1;
-		allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		BGFX_VKAPI(vkAllocateCommandBuffers)(m_device, &allocateInfo, &m_commandBuffer);
+		m_commandBuffers.resize(m_framebuffers.size());
+		for (size_t i = 0; i < m_framebuffers.size(); i++)
+		{
+			VkCommandBufferAllocateInfo allocateInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
+			allocateInfo.commandPool = m_cmdPool;   //todo
+			allocateInfo.commandBufferCount = 1;
+			allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			BGFX_VKAPI(vkAllocateCommandBuffers)(m_device, &allocateInfo, &m_commandBuffers[i]);
+		}
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createSyncObjects(uint32_t _maxframe, uint32_t _imagesize)
@@ -453,7 +456,7 @@ namespace bgfx {
 		m_renderRegion = size;
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::submitFrame(VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
+	void RayTracingVK::submit(VkCommandBuffer cmdbuff,VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)
 	{
 		//uint32_t imageIndex = m_swapChain.getActiveImageIndex();
 		//BGFX_VKAPI(vkResetFences)(m_device, 1, &waitFence);
@@ -482,7 +485,7 @@ namespace bgfx {
 		submitInfo.waitSemaphoreCount = 1;                // One wait semaphore
 		submitInfo.pSignalSemaphores = &semaphoreWrite;  // Semaphore(s) to be signaled when command buffers have completed
 		submitInfo.signalSemaphoreCount = 1;                // One signal semaphore
-		submitInfo.pCommandBuffers = &m_commandBuffer;  // Command buffers(s) to execute in this batch (submission)
+		submitInfo.pCommandBuffers = &cmdbuff;  // Command buffers(s) to execute in this batch (submission)
 		submitInfo.commandBufferCount = 1;                           // One command buffer
 		//submitInfo.pNext = &deviceGroupSubmitInfo;
 
