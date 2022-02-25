@@ -79,8 +79,6 @@ namespace bgfx{
 
 		void initRayTracingScene(const char* filename);
 
-		void initRayTracingScene(void* verticesData, void* indicesData);
-
 		void createAccelerationStructure();
 
 		void createRender();
@@ -99,7 +97,7 @@ namespace bgfx{
 
 		void createCommandBuffers();
 
-		void setRenderRegion(const VkRect2D& size);
+		void setRenderRegion();
 
 		void resetFrame();
 

@@ -4165,6 +4165,9 @@ namespace bgfx
 
 	void setupRaytracing();
 
+	void createRtScene(VertexBufferHandle _vbh,IndexBufferHandle _ibh);
+
+
 } // namespace bgfx
 
 #endif // BGFX_H_HEADER_GUARD

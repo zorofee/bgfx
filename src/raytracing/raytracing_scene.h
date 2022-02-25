@@ -37,7 +37,6 @@ namespace bgfx
 		bool load(const std::string& filename);
 		bool loadGltfScene(const std::string& filename, tinygltf::Model& tmodel);
 		// vbo组织方法，组织为GltfPrimMesh
-		void initRayTracingScene(void* verticesData, void* indicesData);
 		void createMaterialBuffer(VkCommandBuffer cmdBuf, const bgfx::GltfScene& gltf);
 		void createLightBuffer(VkCommandBuffer cmdBuf, const bgfx::GltfScene& gltf);
 		void createVertexBuffer(VkCommandBuffer cmdBuf, const bgfx::GltfScene& gltf);
@@ -80,6 +79,5 @@ namespace bgfx
 		VkDescriptorSetLayout m_descSetLayout{ VK_NULL_HANDLE };
 		VkDescriptorSet       m_descSet{ VK_NULL_HANDLE };
 
-		void importDrawableNodes(bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh);
 	};
 }

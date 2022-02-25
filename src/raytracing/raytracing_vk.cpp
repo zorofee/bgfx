@@ -76,11 +76,6 @@ namespace bgfx {
 		//m_accelStruct.create(m_scene.getScene(), m_scene.getBuffers(RayTracingScene::eVertex), m_scene.getBuffers(RayTracingScene::eIndex));
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::initRayTracingScene(void* verticesData, void* indicesData)
-	{
-		m_scene.initRayTracingScene(verticesData, indicesData);
-	}
-	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::createAccelerationStructure()
 	{
 		// m_scene需要把场景组织到自己的gltfScene
@@ -449,11 +444,11 @@ namespace bgfx {
 		}
 	}
 	//--------------------------------------------------------------------------------------------------
-	void RayTracingVK::setRenderRegion(const VkRect2D& size)
+	void RayTracingVK::setRenderRegion()
 	{
-		if (memcmp(&m_renderRegion, &size, sizeof(VkRect2D)) != 0)
-			resetFrame();
-		m_renderRegion = size;
+		//if (memcmp(&m_renderRegion, &size, sizeof(VkRect2D)) != 0)
+		resetFrame();
+		m_renderRegion = VkRect2D{ {0,0}, m_viewSize};
 	}
 	//--------------------------------------------------------------------------------------------------
 	void RayTracingVK::submit(VkCommandBuffer cmdbuff,VkQueue graphicsQueue, uint32_t currentFrame, uint32_t imageIndex)

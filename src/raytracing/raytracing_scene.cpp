@@ -69,11 +69,6 @@ namespace bgfx
 		m_queueFamilyIndex = familyIndex;
 		m_queue = queue;
 		m_debug.setup(device);
-		//just for test
-		bgfx::GltfNode pnode;
-		pnode.worldMatrix = nvmath::mat4f(1);
-		pnode.primMesh = 0;
-		m_gltf.addTestNode(pnode);
 	}
 	//--------------------------------------------------------------------------------------------------
 	// Loading a GLTF Scene, allocate buffers and create descriptor set for all resources
@@ -187,61 +182,6 @@ namespace bgfx
 		LOGW(warn.c_str());
 
 		return true;
-	}
-	//--------------------------------------------------------------------------------------------------
-	// Linearize the scene graph to world space nodes.
-	//
-	void RayTracingScene::importDrawableNodes(bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh)
-	{
-		// Find the number of vertex(attributes) and index
-		//uint32_t nbVert{0};
-		uint32_t nbIndex{ 0 };
-		uint32_t meshCnt{ 0 };  // use for mesh to new meshes
-		uint32_t primCnt{ 0 };  //  "   "  "  "
-
-
-	}
-	//--------------------------------------------------------------------------------------------------
-	// Process raw data of vertices and indices, create vertexBuffer
-	// allocate buffers and create descriptor set for all resources
-	//
-	void RayTracingScene::initRayTracingScene(void* verticesData, void* indicesData)
-	{
-		destroy();
-		bgfx::GltfScene gltf;
-
-		m_stats = gltf.getStatistics();
-
-		// Extracting scene information to our format and adding, if missing, attributes such as tangent
-		{
-			LOGI("Convert to internal GLTF");
-			gltf.importMaterials();
-			gltf.processRawVerticesData(verticesData, indicesData);
-			// 处理到一个 node 中
-			//bgfx::GltfNode node;
-			//node.worldMatrix = nvmath::mat4f(1);
-			//node.primMesh = 0;
-			//gltf.m_nodes.emplace_back(node);
-		}
-
-		// We are using a different index (1), to allow loading in a different queue/thread than the display (0) is using
-		// Note: the GTC family queue is used because the nvvk::cmdGenerateMipmaps uses vkCmdBlitImage and this
-		// command requires graphic queue and not only transfer.
-		LOGI("Create Buffers\n");
-		bgfx::CommandPool cmdBufGet(m_device, m_queueFamilyIndex, VK_COMMAND_POOL_CREATE_TRANSIENT_BIT, m_queue);
-		VkCommandBuffer   cmdBuf = cmdBufGet.createCommandBuffer();
-
-		createMaterialBuffer(cmdBuf, gltf);
-		createVertexBuffer(cmdBuf, gltf);
-
-		//// Descriptor set for all elements
-		//createDescriptorSet(gltf);
-
-		// Keeping minimal resources
-		m_gltf.m_nodes = gltf.m_nodes;
-		m_gltf.m_primMeshes = gltf.m_primMeshes;
-		m_gltf.m_materials = gltf.m_materials;
-		//m_gltf.m_dimensions = gltf.m_dimensions;
 	}
 	//--------------------------------------------------------------------------------------------------
 	// Create a buffer of all materials

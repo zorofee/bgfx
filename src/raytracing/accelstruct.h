@@ -36,5 +36,12 @@ namespace bgfx
 		VkDescriptorPool      m_rtDescPool{ VK_NULL_HANDLE };
 		VkDescriptorSetLayout m_rtDescSetLayout{ VK_NULL_HANDLE };
 		VkDescriptorSet       m_rtDescSet{ VK_NULL_HANDLE };
+
+
+
+		void createBottomLevelAS(const std::vector<uint32_t>& vertexCounts, const std::vector<uint32_t>& indexCounts, const std::vector<bgfx::Buffer>& vertex, const std::vector<bgfx::Buffer>& index);
+		bgfx::RaytracingBuilderKHR::BlasInput primitiveToGeometry(uint32_t vertexCount, uint32_t indexCount, VkBuffer vertex, VkBuffer index);
+		void createTopLevelAS(const std::vector<int>& nodePrimMeshes,const std::vector<VkTransformMatrixKHR>& worldMatrix, bgfx::GltfScene& gltfScene);
+
 	};
 }

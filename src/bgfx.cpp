@@ -5524,6 +5524,11 @@ namespace bgfx
 		s_ctx->m_renderCtx->setupRaytracing();
 	}
 
+	void createRtScene(VertexBufferHandle _vbh, IndexBufferHandle _ibh)
+	{
+		s_ctx->m_renderCtx->createRtScene(_vbh,_ibh);
+	}
+
 	void initRayTracingScene(const char* filename)
 	{
 		s_ctx->m_renderCtx->initRayTracingScene(filename);

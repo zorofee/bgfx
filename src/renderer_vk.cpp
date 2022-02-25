@@ -4543,24 +4543,38 @@ VK_IMPORT_DEVICE
 			m_raytracingVK.createAccelerationStructure();
 			m_raytracingVK.createDescriptorSetLayout();
 			m_raytracingVK.createRender();
-			m_raytracingVK.setRenderRegion(VkRect2D{ 1018,694 });
+			m_raytracingVK.setRenderRegion();
+
+			VkBuffer vbo = m_vertexBuffers[m_rtVbh.idx].m_buffer;
+			VkBuffer ibo = m_indexBuffers[m_rtIbh.idx].m_buffer;
+
+		}
+
+		void createRtScene(VertexBufferHandle _vbh, IndexBufferHandle _ibh)
+		{
+			//VkBuffer vbo = m_vertexBuffers[_vbh.idx].m_buffer;
+			//VkBuffer ibo = m_indexBuffers[_ibh.idx].m_buffer;
+			//m_raytracingVK.initRayTracingScene()
+			m_rtVbh = _vbh;
+			m_rtIbh = _ibh;
 		}
 
 		void initTestScene()
 		{
+			VkExtent2D _swapChainExtent = { 800,600 };
+			uint32_t _queueFamilyIndex = 0;
+			/*
 			vkTestSingleFBO.createInstance(m_instance);
 			vkTestSingleFBO.createLogicalDevice(m_device);
 			vkTestSingleFBO.createRenderPass(VK_FORMAT_B8G8R8A8_SRGB);
-			VkExtent2D _swapChainExtent = { 800,600 };
 			vkTestSingleFBO.createGraphicsPipeline(_swapChainExtent);
 			vkTestSingleFBO.createFramebuffers(m_backBuffer.m_currentFramebuffer);
-			uint32_t _queueFamilyIndex = 0;
 			vkTestSingleFBO.createCommandPool(_queueFamilyIndex);
 			vkTestSingleFBO.createCommandBuffers(_swapChainExtent);
 			//vkTestSingleFBO.createSyncObjects(imageAvailableSemaphores, renderFinishedSemaphores, inFlightFences, imagesInFlight);
 			vkTestSingleFBO.createSyncObjects(2, 2);
 			vkTestSingleFBO.begin();
-
+			*/
 
 
 			vkTestMultiFBO.createInstance(m_instance);
@@ -4632,6 +4646,9 @@ VK_IMPORT_DEVICE
 		TextureVK      m_textures[BGFX_CONFIG_MAX_TEXTURES];
 		VertexLayout   m_vertexLayouts[BGFX_CONFIG_MAX_VERTEX_LAYOUTS];
 		FrameBufferVK  m_frameBuffers[BGFX_CONFIG_MAX_FRAME_BUFFERS];
+		VertexBufferHandle m_rtVbh;
+		IndexBufferHandle m_rtIbh;
+
 
 		void* m_uniforms[BGFX_CONFIG_MAX_UNIFORMS];
 		Matrix4 m_predefinedUniforms[PredefinedUniform::Count];
